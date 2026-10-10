@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-10 (task 1, scaffold).
+Last updated: 2026-10-10 (task 1, scaffold; private store and review tool decided).
 
 ---
 
@@ -34,7 +34,10 @@ Last updated: 2026-10-10 (task 1, scaffold).
 - **No servers, no database.** GitHub Actions does the work; files are the database; Cloudflare
   Pages serves the site.
 
-## 2. The private store — recommended: a second, private GitHub repo
+## 2. The private store — DECIDED 2026-10-10: a second, private GitHub repo
+
+Created: `serge-netizen/lebanon-fire-incidents-data` (private). Its name is the Actions
+variable `PRIVATE_DATA_REPO`; the access token is the secret `PRIVATE_DATA_TOKEN`, created by the owner.
 
 The brief said raw text is "git-tracked but not published". In a public repo, git-tracked *is*
 published. So the text needs a separate home.
@@ -102,8 +105,9 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - Cluster key from the brief: same district + same incident group + within 36 h (_chosen in the
   brief_) + place-string similarity. Official values win on conflict; conflicting casualty counts
   → `needs_review`.
-- Review sheet: the brief names a Google Sheet. **Alternative to consider:** GitHub Issues or a
-  pull request per batch — no service-account key, full history, free. Decision for the owner (§6).
+- Review sheet: **DECIDED 2026-10-10 — a Google Sheet**, as in the brief, on the owner's Google
+  account. A service account (a robot Google user) reads and writes it; its key is an Actions
+  secret created by the owner. Set up at the start of task 5.
 - Publish: parquet + csv + geojson + aggregate JSON files; `DATA_DICTIONARY.md` generated from the
   schema so the two cannot drift.
 - Done test: a 14-day run, reviewed, with a recall figure against the owner's manual log.
@@ -156,12 +160,12 @@ the real numbers on the golden set before any backfill runs.
 
 ## 6. Waiting on the owner
 
-1. **Private store**: confirm option A and create the private repo + a fine-grained token (only
-   the owner handles tokens).
+1. **Private store**: repo created; the owner creates the fine-grained token and saves it as the
+   `PRIVATE_DATA_TOKEN` secret (only the owner handles tokens).
 2. **Cloudflare Pages**: connect this repo in the Cloudflare dashboard — build command
    `npm run build`, root directory `site`, output `dist`.
 3. **Anthropic API key** as an Actions secret, before task 4.
-4. **Review tool**: Google Sheet (brief) or GitHub Issues/PRs (no key needed).
+4. **Review tool**: Google Sheet decided; the service-account key is needed by task 5.
 5. Brief §12 items: disclosure, reviewer, data-request contacts.
 
 ## 7. Worth knowing
