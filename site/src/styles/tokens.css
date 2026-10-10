@@ -1,0 +1,65 @@
+/* Design tokens (BRIEF §9). Placeholder values: the full palette is chosen and
+   contrast-checked with the dataviz skill in task 7. Brand-neutral by design. */
+:root {
+  color-scheme: light dark;
+
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --text: #17181a;
+  --text-muted: #5d6066;
+  --hairline: #e6e6e3;
+
+  /* One warm hue for fire data; five tints for sequential scales. */
+  --fire-1: #fde7d9;
+  --fire-2: #f9b98f;
+  --fire-3: #f08a4b;
+  --fire-4: #d4601f;
+  --fire-5: #9e3f0f;
+  --accent: var(--fire-4);
+
+  --official: #4a6a8a;  /* cool neutral for the official series */
+  --conflict: #8a8c90;  /* desaturated grey: conflict-related never reads as alarm */
+
+  --font-latin: "IBM Plex Sans", system-ui, sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  --step-0: 1rem;
+  --step-kpi: clamp(2.5rem, 6vw, 4rem);
+  --content-max: 1200px;
+  --gutter: 16px;
+  --radius: 10px;
+  --motion: 180ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111214;
+    --surface: #18191c;
+    --text: #ececea;
+    --text-muted: #a2a5ab;
+    --hairline: #2a2c30;
+    --accent: var(--fire-3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111214;
+  --surface: #18191c;
+  --text: #ececea;
+  --text-muted: #a2a5ab;
+  --hairline: #2a2c30;
+  --accent: var(--fire-3);
+}
+
+* { box-sizing: border-box; }
+html { font-variant-numeric: tabular-nums; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-latin);
+  font-size: var(--step-0);
+  line-height: 1.55;
+}
+html[lang="ar"] body { font-family: var(--font-arabic); font-size: calc(var(--step-0) * 1.1); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

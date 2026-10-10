@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import { LOCALES, t, type Locale } from "../../i18n";
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+const locale = Astro.params.lang as Locale;
+---
+<Base locale={locale}>
+  <section class="hero">
+    <p class="badge">{t(locale, "badge_compiled")}</p>
+    <h1>{t(locale, "site_name")}</h1>
+    <p class="lede">{t(locale, "tagline")}</p>
+    <p class="status">{t(locale, "status_building")}</p>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: 64px; max-width: 760px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; margin: 12px 0 16px; font-weight: 600; }
+  .lede { font-size: 1.2rem; color: var(--text-muted); margin: 0 0 32px; }
+  .badge {
+    display: inline-block; margin: 0; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--hairline); color: var(--text-muted); font-size: 0.85rem;
+  }
+  .status { border-inline-start: 3px solid var(--accent); padding-inline-start: 14px; color: var(--text-muted); }
+</style>

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schema/incident/1.0.0",
+  "title": "Fire incident",
+  "description": "One record per incident, compiled from media reports and official statements. NFIRS-based. Schema version is carried in schema_version; bump it on any breaking change and log it in data/published/CHANGELOG.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "country", "record_type", "occurred_at", "date_precision",
+    "reported_at", "incident_group", "origin", "cause_reported", "place_text",
+    "location_precision", "sources", "confidence", "status", "created_at", "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}-[0-9]{8}-[0-9]{4}$",
+      "description": "{country}-{YYYYMMDD of occurred_at}-{NNNN}, e.g. LB-20261009-0001."
+    },
+    "country": { "type": "string", "pattern": "^[A-Z]{2}$", "description": "ISO 3166-1 alpha-2." },
+    "record_type": {
+      "enum": ["incident", "aggregate_report", "not_a_fire"],
+      "description": "Only 'incident' is published as an incident. 'aggregate_report' (daily tallies, seasonal totals) feeds data/official/daily_tallies.csv. 'not_a_fire' is kept privately so it is not re-proposed."
+    },
+    "occurred_at": { "type": "string", "format": "date-time", "description": "Best estimate, Asia/Beirut offset." },
+    "date_precision": { "enum": ["exact", "day", "week"] },
+    "reported_at": { "type": "string", "format": "date-time", "description": "Earliest source publish time." },
+    "incident_group": { "enum": ["fire", "explosion", "false_or_unconfirmed"] },
+    "nfirs_type": {
+      "type": ["integer", "null"],
+      "enum": [100, 111, 113, 118, 130, 131, 132, 140, 141, 142, 143, 150, 151, 154, 160, null],
+      "description": "NFIRS 100-series incident type. Null when incident_group is not 'fire' or the type cannot be read from the text."
+    },
+    "property_class": {
+      "type": ["string", "null"],
+      "enum": ["residential", "commercial", "industrial_warehouse", "public_institutional", "vehicle",
+               "outdoor_wildland", "informal_settlement", "fuel_energy", "other", null]
+    },
+    "occupancy_detail": { "type": ["string", "null"], "maxLength": 200, "description": "Free text as reported, e.g. 'sponge factory'. Never a person's or business's name." },
+    "cause_reported": {
+      "enum": ["electrical", "generator_fuel", "cooking", "heating", "smoking", "open_flame", "intentional",
+               "gas_leak", "military_strike", "under_investigation_unknown"],
+      "description": "Always 'as reported'. Default under_investigation_unknown."
+    },
+    "origin": {
+      "enum": ["accidental", "deliberate", "conflict_related", "unknown"],
+      "description": "Shown separately everywhere; conflict-related fires never fold silently into safety trends."
+    },
+    "deaths": { "$ref": "#/$defs/count" },
+    "injuries": { "$ref": "#/$defs/count" },
+    "asphyxiation_cases": { "$ref": "#/$defs/count" },
+    "displaced": { "$ref": "#/$defs/count" },
+    "structures_destroyed": { "$ref": "#/$defs/count" },
+    "responders": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["civil_defense", "beirut_fire_brigade", "army_helicopters", "red_cross", "other"] }
+    },
+    "severity": {
+      "type": ["integer", "null"], "minimum": 1, "maximum": 4,
+      "description": "1 extinguished on arrival / 2 damage, no casualties / 3 injuries or displacement / 4 deaths or multiple structures."
+    },
+    "place_text": { "type": "string", "description": "The place exactly as written in the source." },
+    "admin1": { "$ref": "#/$defs/admin_unit", "description": "Governorate (OCHA admin level 1)." },
+    "admin2": { "$ref": "#/$defs/admin_unit", "description": "District / caza (OCHA admin level 2)." },
+    "admin3": { "$ref": "#/$defs/admin_unit", "description": "Cadastral village (OCHA admin level 3)." },
+    "lat": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+    "lon": { "type": ["number", "null"], "minimum": -180, "maximum": 180 },
+    "location_precision": {
+      "enum": ["village", "district", "governorate", "unknown"],
+      "description": "Finest admin level matched; lat/lon is that unit's centroid, never a measured point."
+    },
+    "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source" } },
+    "official_record_id": {
+      "type": ["string", "null"],
+      "description": "Link (never a merge) to a matching record in an official series, see BRIEF §7."
+    },
+    "summary": { "type": ["string", "null"], "maxLength": 280, "description": "Our own one-line summary. Never copied article text." },
+    "evidence": {
+      "type": "object",
+      "description": "Verbatim quote per populated field, keyed by field name. Private: never published. Never contains a person's name.",
+      "additionalProperties": { "type": "string", "maxLength": 500 }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status": { "enum": ["auto", "needs_review", "approved", "rejected"] },
+    "tags": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "revision_note": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "count": { "type": ["integer", "null"], "minimum": 0, "description": "Null = the text does not say. 0 = the text says none." },
+    "admin_unit": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["pcode", "name_en", "name_ar"],
+      "properties": {
+        "pcode": { "type": "string" },
+        "name_en": { "type": "string" },
+        "name_ar": { "type": "string" },
+        "name_fr": { "type": ["string", "null"] }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outlet", "url", "headline", "published_at", "source_type", "is_upstream"],
+      "properties": {
+        "outlet": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "Adapter slug, e.g. civil_defense, elnashra." },
+        "url": { "type": "string", "format": "uri" },
+        "headline": { "type": "string" },
+        "published_at": { "type": "string", "format": "date-time" },
+        "source_type": { "enum": ["media", "official"] },
+        "is_upstream": { "type": "boolean", "description": "True when this source is the origin others relay (Civil Defense, NNA)." },
+        "raw_ref": { "type": ["string", "null"], "description": "Path of the article text in the private store; lets every data point be traced to its source text." }
+      }
+    }
+  }
+}

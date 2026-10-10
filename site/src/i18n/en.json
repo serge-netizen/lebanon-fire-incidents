@@ -1,0 +1,16 @@
+{
+  "site_name": "Lebanon Fire Incidents",
+  "tagline": "A public record of fires in Lebanon, compiled from news reports and official statements.",
+  "badge_compiled": "Compiled from news and official statements",
+  "status_building": "The data pipeline is being built. Figures appear here once the pilot period has been reviewed.",
+  "nav_home": "Home",
+  "nav_explorer": "Explorer",
+  "nav_map": "Map",
+  "nav_methodology": "Methodology",
+  "nav_data": "Data",
+  "nav_about": "About",
+  "language": "Language",
+  "theme": "Theme",
+  "data_as_of": "Data as of",
+  "data_licence": "Data: CC BY 4.0 · Code: MIT"
+}

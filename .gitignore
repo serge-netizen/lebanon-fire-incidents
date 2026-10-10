@@ -1,0 +1,23 @@
+# Private store: raw article text, run state, rejected items, official files as received.
+# Never committed here — it is a separate private repo (docs/BUILD_PLAN.md §2).
+/private/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Site
+site/node_modules/
+site/dist/
+site/.astro/
+
+# Secrets never live in files, but in case one is dropped here by mistake:
+.env
+.env.*
+*.pem
+*service-account*.json
+
+.DS_Store

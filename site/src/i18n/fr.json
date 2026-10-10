@@ -1,0 +1,16 @@
+{
+  "site_name": "Incendies au Liban",
+  "tagline": "Un registre public des incendies au Liban, établi à partir des médias et des communiqués officiels.",
+  "badge_compiled": "Compilé à partir des médias et des communiqués officiels",
+  "status_building": "La chaîne de données est en cours de construction. Les chiffres apparaîtront ici après la revue de la période pilote.",
+  "nav_home": "Accueil",
+  "nav_explorer": "Explorateur",
+  "nav_map": "Carte",
+  "nav_methodology": "Méthodologie",
+  "nav_data": "Données",
+  "nav_about": "À propos",
+  "language": "Langue",
+  "theme": "Thème",
+  "data_as_of": "Données au",
+  "data_licence": "Données : CC BY 4.0 · Code : MIT"
+}

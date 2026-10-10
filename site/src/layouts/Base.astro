@@ -1,0 +1,59 @@
+---
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans-arabic/400.css";
+import "@fontsource/ibm-plex-sans-arabic/600.css";
+import "../styles/tokens.css";
+import { LOCALES, LOCALE_NAMES, dir, switchLocale, t, type Locale } from "../i18n";
+
+interface Props { locale: Locale; title?: string }
+const { locale, title } = Astro.props;
+const pageTitle = title ? `${title} · ${t(locale, "site_name")}` : t(locale, "site_name");
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang={locale} dir={dir(locale)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={t(locale, "tagline")} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l} href={switchLocale(path, l)} />)}
+  </head>
+  <body>
+    <header class="bar">
+      <a class="brand" href={`/${locale}/`}>{t(locale, "site_name")}</a>
+      <nav aria-label={t(locale, "language")} class="langs">
+        {LOCALES.map((l) => (
+          <a href={switchLocale(path, l)} lang={l} aria-current={l === locale ? "page" : undefined}>{LOCALE_NAMES[l]}</a>
+        ))}
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer class="bar foot">
+      <span>{t(locale, "data_licence")}</span>
+      <!-- Funding statement slot (BRIEF §2.3): empty until the disclosure decision is made. -->
+      <span class="funding" data-slot="funding-statement" hidden></span>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .bar {
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding: 20px var(--gutter);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand { font-weight: 600; text-decoration: none; }
+  .langs { display: flex; gap: 14px; }
+  .langs a { text-decoration: none; color: var(--text-muted); }
+  .langs a[aria-current="page"] { color: var(--text); font-weight: 600; }
+  main { max-width: var(--content-max); margin-inline: auto; padding-inline: var(--gutter); }
+  .foot { border-block-start: 1px solid var(--hairline); color: var(--text-muted); font-size: 0.875rem; margin-block-start: 64px; }
+</style>
