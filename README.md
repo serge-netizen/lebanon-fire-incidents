@@ -27,6 +27,19 @@ uv run crawler --dry-run
 cd site && npm ci && npm run build
 ```
 
+## The owner's Mac
+
+Four sources block GitHub's servers, so the owner's Mac reads them in the background
+(three times a day and at log-in; it catches up after days off). It runs from its own clone,
+`~/Projects/lebanon-fire-incidents-runner`, always on `main` — never develop there:
+
+```bash
+scripts/install-home-job.sh
+```
+
+Log: `~/Library/Logs/lebanon-fire-incidents/crawl.log`. To stop it:
+`launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/org.lebanon-fire-incidents.home-crawl.plist`
+
 ## Licences
 
 Code: MIT. Data: CC BY 4.0 (see `data/LICENSE.md`).

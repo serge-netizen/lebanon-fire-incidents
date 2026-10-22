@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Installed by scripts/install-home-job.sh; __HOME__ is replaced with the owner's home folder. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>org.lebanon-fire-incidents.home-crawl</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/bash</string><string>__HOME__/Projects/lebanon-fire-incidents-runner/scripts/home-crawl.sh</string></array>
+  <!-- 07:17, 13:17, 20:17 local time. A run missed while the Mac slept starts when it wakes. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>17</integer></dict>
+    <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>17</integer></dict>
+    <dict><key>Hour</key><integer>20</integer><key>Minute</key><integer>17</integer></dict>
+  </array>
+  <!-- Also at log-in, so a Mac that was switched off catches up. -->
+  <key>RunAtLoad</key><true/>
+  <key>ProcessType</key><string>Background</string>
+  <key>Nice</key><integer>10</integer>
+  <key>LowPriorityIO</key><true/>
+</dict>
+</plist>

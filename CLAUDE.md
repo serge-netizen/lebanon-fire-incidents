@@ -16,3 +16,9 @@ built and what was decided along the way.
   says so where it is defined, with its value and why.
 - Work task by task (BRIEF §10). Each task ends on its "done" test, passing in CI.
 - Nobody pushes straight to `main` once the scaffold is merged: branch, pull request, green CI.
+  The one exception is the crawl bot, which commits `data/official/daily_tallies.csv` itself.
+- **Two machines crawl.** GitHub reads the sources it can reach; the owner's Mac reads the ones
+  that block GitHub (`scripts/home-crawl.sh`), from its own clone
+  `~/Projects/lebanon-fire-incidents-runner` on `main` — never develop in that clone. Before marking a source `where = "github"`, check it
+  from GitHub's servers (`census.yml`): a site that opens from Lebanon may answer GitHub with a
+  bot check. Never get around a bot check.
