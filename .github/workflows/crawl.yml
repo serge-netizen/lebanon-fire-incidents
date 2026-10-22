@@ -2,9 +2,11 @@ name: crawl
 # Three runs a day at 06:00, 13:00 and 20:00 Beirut.
 # GitHub cron is UTC and has no time zones: 03/10/17 UTC is exact in summer (UTC+3)
 # and one hour early in winter (UTC+2). Chosen so the evening run never slips past midnight.
+# Minute 17, not 0: GitHub delays and drops scheduled runs most at the top of the hour
+# (measured 2026-10-10 → 22: runs started 3–7 h late; see docs/BUILD_PLAN.md §8).
 on:
   schedule:
-    - cron: "0 3,10,17 * * *"
+    - cron: "17 3,10,17 * * *"
   workflow_dispatch:
 
 permissions:
