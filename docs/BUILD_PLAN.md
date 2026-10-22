@@ -195,11 +195,11 @@ servers in task 3, because sites treat data-centre addresses differently.
 
 | Source | Brief said | Found |
 | --- | --- | --- |
-| Elnashra (tier 1, "highest density") | server-rendered tag pages | **Blocked by a bot check** (Cloudflare "Just a moment…", HTTP 403) on tag pages and the sitemap. We do not get around bot checks. |
+| Elnashra (tier 1, "highest density") | server-rendered tag pages | **Bot check comes and goes** (blocked at 15:10, open at 16:30 the same day). The fire tag page is **stale** (newest item 14 Dec 2025); the security and miscellaneous sections are live, but older items load only in the browser, so a visit sees one to two days. We never get around a bot check. |
 | Civil Defense website (tier 1, official) | per-incident statements by sequential ID | **Newest statement dated 30 Sep 2026** (22 days old). The article address in the brief returns the full listing page, not the statement; the listing's dates are unreliable. Needs real parsing work. |
 | NNA (tier 1) | sitemaps + Playwright | **Works.** Daily sitemaps per category, headline in the address. Local news, 7 Sep–21 Oct: **1,641 headlines, about 8 individual fires**; the daily Civil Defense tally appears almost every day. |
 | Lebanon24 (tier 1) | ~80 items/day RSS | Two feeds: 999 items over 35 days, **3 fire headlines**. |
-| Lebanon Debate (tier 1) | listing pages | **Now built in the browser**: the HTML holds no article list. Needs Playwright. |
+| Lebanon Debate (tier 1) | listing pages | **Readable**: 24 dated articles a page, paging works. _Corrected the same day: a first check wrongly said "built in the browser" (wrong pattern)._ Its sitemap index is behind a bot check. |
 | LBCI, Al Jadeed (tier 2) | RSS | Feeds work but hold only the last **10–20 items** (one to two days); use their news sitemaps. |
 | Google News (tier 2 catch-all) | RSS search | **robots.txt forbids all automated access** (and names Claude's crawlers). Dropped. |
 

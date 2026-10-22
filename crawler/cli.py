@@ -49,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
     gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
     geo = sub.add_parser("geocode", help="resolve a place string, e.g. 'بلدة تول - قضاء النبطية'")
     geo.add_argument("text")
+    cen = sub.add_parser("census", help="count fire headlines per source over recent days (task 3)")
+    cen.add_argument("--days", type=int, default=30)
+    cen.add_argument("--out", type=Path, default=None, help="default: <private store>/census")
     args = parser.parse_args(argv)
 
     if args.dry_run:
@@ -60,6 +63,12 @@ def main(argv: list[str] | None = None) -> int:
         from crawler.gazetteer import build
 
         print(json.dumps(build(args.xlsx), indent=2))
+        return 0
+    if args.command == "census":
+        from crawler import census
+
+        summary = census.run(args.days, args.out or config.PRIVATE_DIR / "census")
+        census.print_table(summary)  # counts only: job logs are public
         return 0
     if args.command == "geocode":
         from crawler.geocode import resolve

@@ -1,0 +1,39 @@
+name: census
+# Task 3, step A: count fire headlines per source, from GitHub's servers. Manual only.
+# Counts go to this (public) log; headlines go to the private store.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "How many days back"
+        default: "30"
+
+permissions:
+  contents: read
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - name: Check out private store
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.PRIVATE_DATA_REPO }}
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - name: Census
+        env:
+          DAYS: ${{ inputs.days }}
+        run: uv run crawler census --days "$DAYS"
+      - name: Save headlines to the private store
+        working-directory: private
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add census
+          git commit -m "census $(date -u +%F)"
+          git push

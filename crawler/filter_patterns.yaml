@@ -1,0 +1,26 @@
+# Keyword filter (BRIEF §3), applied to a headline plus the first 300 characters of text.
+# UTF-8 data, never strings in code (BRIEF §11). Patterns are matched after folding: diacritics
+# removed, alef forms unified (أ إ آ → ا), ى → ي, lower case — so write them either way.
+
+# Any of these sends an article on to extraction (BRIEF §3, verbatim).
+match:
+  - "حريق|حرائق|اندل(?:ع|اع) حريق|إخماد|أخمد|تخمد|النيران|نيران تشتعل|اشتعال|احتراق|حرقاً|حرقًا|التهمت|تلتهم|السيطرة على الحريق|احتواء حريق|تجدد الحريق|بؤرة|فوج (?:إطفاء|الإطفاء)|الدفاع المدني|ماس كهربائي|قارورة غاز|مولد|حالات اختناق"
+  - "fire (?:broke|breaks) out|blaze|brought under control|extinguish|civil defen[cs]e|asphyxiation|gas canister"
+  - "incendie|feu (?:s'est déclaré|a éclaté)|maîtrisé|défense civile"
+
+# Borderline words: passed to the model too (BRIEF §4.2).
+borderline:
+  - "انفجار|دخان|اختناق"
+
+# Figurative fire, risk bulletins, military fire (BRIEF §3). Flagged, not dropped: the model
+# decides, because a strike can start a real fire.
+exclude:
+  - "نيران العدو|تحت نيران|إطلاق نار|قصف"
+  - "تشعل الغضب|يشعل جدلاً"
+  - "نشرة إحتمال إندلاع حرائق|موجة الحر"
+  - "cease-?fire|gunfire|opened fire|under fire|exchange of fire|fireworks?"
+
+# Narrower sets used by the source census (task 3) to tell fire stories from the rest.
+census:
+  fire: "حريق|حرائق|إخماد|أخمد|تخمد|النيران|نيران|اشتعال|احتراق|التهمت|تلتهم|\\bfires?\\b|\\bblazes?\\b|wildfires?|\\bincendies?\\b|feux? de forêt"
+  tally: "مهم(?:ة|ات|ه) خلال|missions? (?:in|over) the (?:past|last) 24"
