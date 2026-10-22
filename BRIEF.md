@@ -8,6 +8,7 @@ This is the project brief. It is the complete context needed to build the first 
 > 3. **Private store** (§4.3, §5) — raw article text, run state, rejected items and received official files live in a separate **private** store (`private/`, a second, private repo in CI), never in this public repo. A public repo cannot hold anything privately. See `docs/BUILD_PLAN.md` §2.
 > 4. **Boundaries dataset** (§4.6, §12, 2026-10-22) — the HDX dataset is now `cod-ab-lbn`, licensed **CC BY-IGO** (republishing allowed with attribution). The licence question in §4.6 is settled.
 > 5. **Google News dropped** (§3 tier 2, 2026-10-22) — its robots.txt forbids all automated access, and this brief requires respecting robots.txt. Other source findings: `docs/BUILD_PLAN.md` §8. Decisions already taken are marked **DECIDED**; everything else is open to engineering judgement.
+> 6. **Nine governorates** (§6 `admin1`, owner's decision 2026-10-22) — the site follows current law: Keserwan-Jbeil (2017) is its own governorate. OCHA's table has eight; the ninth is applied over it (`data/gazetteer/governorates.csv`).
 
 ---
 

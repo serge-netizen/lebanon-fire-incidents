@@ -31,13 +31,11 @@ Zghorta,en,2,LB57,verified,spelling variant of the district
 Sidon,en,2,LB61,verified,English name of Saida
 Tyre,en,2,LB63,verified,English name of Sour
 Tyr,fr,2,LB63,verified,French name of Sour
-Mont Liban,fr,1,LB3,verified,French name of Mount Lebanon
+Mont Liban,fr,region,LB3|LBKJ,proposed,"colloquial Mount Lebanon still includes Kesrouan and Jbeil, a separate governorate since 2017"
 جونية,ar,2,LB35,verified,"Jounieh city spans three cadastral areas (Jounie Ghadir, Haret Sakhr, Sarba), all in Kesrouan"
 Jounieh,en,2,LB35,verified,"Jounieh city spans three cadastral areas, all in Kesrouan"
 الشويفات,ar,2,LB31,verified,"Choueifat spans three cadastral areas, all in Aley"
 Choueifat,en,2,LB31,verified,"Choueifat spans three cadastral areas, all in Aley"
-كسروان جبيل,ar,region,LB35|LB34,verified,the Keserwan-Jbeil governorate (2017) is these two districts
-Keserwan-Jbeil,en,region,LB35|LB34,verified,the Keserwan-Jbeil governorate (2017) is these two districts
 الجنوب,ar,region,LB6|LB4,proposed,"colloquial 'the South' usually covers both the South and Nabatieh governorates"
 South Lebanon,en,region,LB6|LB4,proposed,"colloquial South Lebanon covers both the South and Nabatieh governorates"
 Southern Lebanon,en,region,LB6|LB4,proposed,"colloquial South Lebanon covers both the South and Nabatieh governorates"
@@ -59,3 +57,7 @@ Zgharta-Ehden,en,region,33111|33211,proposed,Zgharta-Ehden is one municipality c
 Ashrafieh,en,3,10650,verified,spelling variant of Achrafieh
 Achrafiyeh,en,3,10650,verified,spelling variant of Achrafieh
 Sin el Fil,en,3,22155,verified,spelling variant of Sinn El-Fil
+جبل لبنان,ar,region,LB3|LBKJ,proposed,"colloquial Mount Lebanon still includes Kesrouan and Jbeil, a separate governorate since 2017"
+Mount Lebanon,en,region,LB3|LBKJ,proposed,"colloquial Mount Lebanon still includes Kesrouan and Jbeil, a separate governorate since 2017"
+Kesrouan-Jbeil,fr,1,LBKJ,verified,French spelling of the governorate
+Keserwan-Byblos,en,1,LBKJ,verified,English variant of the governorate name

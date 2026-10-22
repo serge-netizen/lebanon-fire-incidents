@@ -25,14 +25,22 @@ Reconstruction (CDR) / OCHA, via the Humanitarian Data Exchange, CC BY-IGO.*
 - 17 areas OCHA labels "Conflict", with no name and no P-code: dropped.
 
 ### Known limits of the source
-- **Eight governorates, not nine.** The table predates the Keserwan-Jbeil governorate (2017); it
-  keeps Kesrouan and Jbeil inside Mount Lebanon. Whether the site shows 8 or 9 is an open decision.
+- **Eight governorates, not nine.** The table predates the Keserwan-Jbeil governorate (2017) and
+  keeps Kesrouan and Jbeil inside Mount Lebanon. **Decided 2026-10-22: the site shows nine.**
+  `governorates.csv` applies the ninth over OCHA's table when it is loaded (the parquet itself
+  stays exactly as OCHA published it): Kesrouan and Jbeil, with all their cadastral areas, move to
+  `LBKJ` — a code this project minted, not an OCHA P-code. Every unit keeps `ocha_adm1_pcode`,
+  its governorate in OCHA's own table. The centre points of Keserwan-Jbeil and of the smaller
+  Mount Lebanon are computed (area-weighted mean of their districts' centre points), not OCHA's.
 - Governorate P-codes follow the post-2014 structure, district P-codes the older one (OCHA's own
   caveat): never derive a parent from a P-code's digits — read `adm1_pcode` / `adm2_pcode`.
 - Cadastral-area P-codes are plain numbers, unique within Lebanon only; a record's `country`
   field makes them unique across countries.
 - OCHA's Arabic names drop the article inconsistently (بترون, صرفند, نبطية الفوقا) and give a
   bare city name to one of a city's several areas (صيدا, جونيه, زحلة). The resolver handles both.
+
+## `governorates.csv` — hand-maintained
+Governorates that exist in law but not in OCHA's table, each as a list of whole districts.
 
 ## `aliases.csv` — hand-maintained
 Other spellings and names. `status` is `verified` (a standard name or spelling) or `proposed`

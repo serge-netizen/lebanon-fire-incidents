@@ -84,7 +84,8 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - Done test: **36 real place strings** (NNA, Lebanon24, a Civil Defense statement) resolve as
   decided beforehand; 74 tests in all. _The brief asked for 100 seeded aliases; there are 60,
   because each one has to be true — volume will come from task 3's real place strings._
-- Not done: the 8-versus-9 governorates question (§6).
+- Nine governorates (owner's decision 2026-10-22): Keserwan-Jbeil applied over OCHA's eight from
+  `governorates.csv`, as code `LBKJ`; OCHA's own assignment kept as `ocha_adm1_pcode`.
 
 ### Task 3 — Tier 1 adapters
 - One class per outlet on the `Source` contract (`crawler/sources/base.py`), each with a saved
@@ -171,7 +172,7 @@ the real numbers on the golden set before any backfill runs.
 | # | What | Needed by | Time |
 | --- | --- | --- | --- |
 | 1 | ~~`PRIVATE_DATA_TOKEN` secret~~ **done 2026-10-22**: verified by a crawl run that checked out the private repo. Renew before it expires on 2027-10-22 | task 3 | done |
-| 2 | 8 or 9 governorates on the site (Keserwan-Jbeil) | task 5 | a decision |
+| 2 | ~~8 or 9 governorates~~ **decided 2026-10-22: nine** (Keserwan-Jbeil separate) | task 5 | done |
 | 3 | Anthropic API key as the `ANTHROPIC_API_KEY` secret, with a monthly spend cap set in the Anthropic console | task 4 | 5 min |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
 | 5 | Google service account + its key as a secret; the review Sheet shared with it | task 5 | 15 min |

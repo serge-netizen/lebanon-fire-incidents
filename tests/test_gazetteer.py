@@ -5,9 +5,23 @@ from crawler.gazetteer import units
 from crawler.geocode import gazetteer
 
 
-def test_counts_match_ochas_published_structure():
-    levels = [u.level for u in units().values()]
-    assert (levels.count(1), levels.count(2), levels.count(3)) == (8, 26, 1610)
+def test_counts_match_ochas_published_structure_plus_one_governorate():
+    u = units()
+    levels = [x.level for x in u.values()]
+    assert (levels.count(1), levels.count(2), levels.count(3)) == (9, 26, 1610)
+    assert {x.ocha_adm1_pcode for x in u.values() if x.level == 1} - {None} == {f"LB{i}" for i in range(1, 9)}
+
+
+def _districts_of(gov: str) -> list[str]:
+    return sorted(p for p, x in units().items() if x.level == 2 and x.adm1_pcode == gov)
+
+
+def test_keserwan_jbeil_is_two_districts_carved_out_of_mount_lebanon():
+    u = units()
+    assert _districts_of("LBKJ") == ["LB34", "LB35"]
+    assert _districts_of("LB3") == ["LB31", "LB32", "LB33", "LB36"]
+    assert u["26277"].adm1_pcode == "LBKJ" and u["26277"].ocha_adm1_pcode == "LB3"
+    assert abs(u["LB3"].area_sqkm + u["LBKJ"].area_sqkm - 1971.13) < 1  # nothing lost in the move
 
 
 def test_every_unit_nests_in_existing_parents():
