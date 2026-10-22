@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-22 (task 2, gazetteer; first look at the real sources, §8).
+Last updated: 2026-10-22 (task 2 done; task 3 step A, the source census, done — §8 and §9).
 
 ---
 
@@ -214,3 +214,51 @@ servers in task 3, because sites treat data-centre addresses differently.
 12 days: runs started **3 to 7 hours late**, and about one run in eighteen never ran. Task 2
 moves the schedule off the top of the hour (GitHub's busiest moment); task 3 must make discovery
 catch up on missed runs by reading sitemaps by date, not "latest" listings.
+
+## 9. Source census from GitHub's servers (2026-10-22) — and the daily bulletin
+
+`census.yml`, one run, window 22 Sep – 21 Oct, 494 requests. Counts only here; the headlines
+are in the private store (`census/2026-10-22/`). "Lebanese fires" is my reading of each headline,
+not a measurement: most fire-word headlines were foreign (Hormuz tankers, France, Canada, Yemen).
+
+| Source | From GitHub | Days its listing covers | Headlines | With fire words | Lebanese fires (read) |
+| --- | --- | --- | --- | --- | --- |
+| NNA | **bot check** | — | — | — | — |
+| Elnashra | **bot check** | — | — | — | — |
+| Janoubia | **bot check** | — | — | — | — |
+| L'Orient Today | **bot check** | — | — | — | — |
+| Lebanonfiles, Kataeb | articles built in the browser | — | — | — | — |
+| Lebanon24, 3 RSS sections | ok | 30 | 1,218 | 6 + 1 daily bulletin | 2 |
+| Lebanon24, news sitemap | ok | 2 | 671 | 6 | 1 |
+| LBCI | ok | 6 | 905 | 9 | 1 |
+| Al Jadeed | ok | 8 | 923 | 2 | 0 |
+| Tayyar | ok | 4 | 420 | 1 | 0 |
+| MTV | ok | 2 | 445 | 0 | 0 |
+| Annahar | ok | 2 | 253 | 0 | 0 |
+| Lebanon Debate | ok | 3 | 560 | 0 | 0 |
+
+**Three findings.**
+1. **GitHub's servers are blocked by four key sources**, NNA (the upstream of most items) among
+   them; all four answered normally from a home connection in Lebanon the same day. One run
+   only: bot checks come and go, so this needs repeating before it is treated as settled.
+2. **Reported fires are rare.** Across every reachable source: three distinct Lebanese fires in a
+   week (Hamat tunnel, a battery fire in Tebnine, a car fire in the South).
+3. **Civil Defense publishes a daily fire count by type.** Its daily bulletin ("X missions in the
+   past 24 hours", carried by NNA, republished in full by Lebanon24 — reachable from GitHub) lists
+   fires put out, split by kind:
+
+   | Bulletin | Fires | Electrical | Homes | Grass | Rubbish | Vehicles | Fruit trees |
+   | --- | --- | --- | --- | --- | --- | --- | --- |
+   | 19 Oct 2026 | 29 | 3 | 4 | 8 | 11 | 3 | — |
+   | 12 Oct 2026 | 41 | 3 | 4 | 27 | 5 | 1 | 1 |
+
+   Media reports name a handful of fires a week; the bulletin counts **29–41 a day** in these
+   two samples. This is the national series the brief said did not exist, and it parses without a
+   language model (fixed format). Not yet known: whether Lebanon24 republishes it every day, how
+   far back it goes, and whether Beirut's own fire brigade (not Civil Defense) is included.
+
+**Archive depth toward ten years** (owner, 2026-10-22: welcome). MTV's monthly sitemaps reach
+2016 (8,881 addresses for October 2016) but carry no headlines; Annahar's reach 2019 with
+headlines (33 addresses in Oct 2019, 4,613 in Oct 2022); the Internet Archive holds at least
+2,000 Elnashra article addresses from 2016, headline in each address. From a home connection:
+Janoubia's archive reaches 2011, L'Orient Today's about 2018, NNA's daily sitemaps about two years.

@@ -9,6 +9,7 @@ This is the project brief. It is the complete context needed to build the first 
 > 4. **Boundaries dataset** (§4.6, §12, 2026-10-22) — the HDX dataset is now `cod-ab-lbn`, licensed **CC BY-IGO** (republishing allowed with attribution). The licence question in §4.6 is settled.
 > 5. **Google News dropped** (§3 tier 2, 2026-10-22) — its robots.txt forbids all automated access, and this brief requires respecting robots.txt. Other source findings: `docs/BUILD_PLAN.md` §8. Decisions already taken are marked **DECIDED**; everything else is open to engineering judgement.
 > 6. **Nine governorates** (§6 `admin1`, owner's decision 2026-10-22) — the site follows current law: Keserwan-Jbeil (2017) is its own governorate. OCHA's table has eight; the ninth is applied over it (`data/gazetteer/governorates.csv`).
+> 7. **Civil Defense does publish a breakdown** (§1, §7; found 2026-10-22) — its daily bulletin lists fires put out by type (electrical, homes, grass, rubbish, vehicles…). §7's `daily_tallies` series is therefore a daily fire count by type, not just a mission count. See `docs/BUILD_PLAN.md` §9.
 
 ---
 
