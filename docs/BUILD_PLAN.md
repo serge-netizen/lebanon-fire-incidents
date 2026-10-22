@@ -104,6 +104,12 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   listed by `crawler bulletins` (mapping: `data/official/mapping/civil_defense_bulletin.yaml`).
 - Not built: the Civil Defense website itself (stale since September; its addresses return the
   listing), Lebanonfiles and Kataeb (bot check / browser-built).
+- **First month in the store (2026-10-22): 267 articles** from all eleven sources, and
+  **12 bulletin days out of 30**. Only **one** of those days has the breakdown by fire type
+  (19 Oct, from Lebanon24): NNA, which carries most bulletins, gives its first line only, and the
+  other outlets rarely republish the full text. Getting the breakdown every day needs either the
+  bulletin archive from Civil Defense or NNA (a data request), or NNA's full text — which loads
+  from its robots-forbidden `/api/`, so we do not take it.
 
 ### Task 4 — Filter + extraction
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
@@ -189,7 +195,7 @@ time: **~$20–70** (_assumes today's density in past years; unknown_).
 | 1 | ~~`PRIVATE_DATA_TOKEN` secret~~ **done 2026-10-22**: verified by a crawl run that checked out the private repo. Renew before it expires on 2027-10-22 | task 3 | done |
 | 1b | ~~A machine in Lebanon~~ **done 2026-10-22**: the owner's own Mac, background job installed | task 3 | done |
 | 2 | ~~8 or 9 governorates~~ **decided 2026-10-22: nine** (Keserwan-Jbeil separate) | task 5 | done |
-| 3 | Anthropic API key as the `ANTHROPIC_API_KEY` secret, with a monthly spend cap set in the Anthropic console | task 4 | 5 min |
+| 3 | ~~Anthropic API key~~ **done 2026-10-22**: `ANTHROPIC_API_KEY` secret in place (the spend cap is set in Anthropic's console, not visible from here) | task 4 | done |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
 | 5 | Google service account + its key as a secret; the review Sheet shared with it | task 5 | 15 min |
 | 6 | The reviewer: who, and roughly how much time a day | task 5 | a decision |
