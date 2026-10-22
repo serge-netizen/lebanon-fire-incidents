@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-22 (task 3 built: two machines, eleven sources, the daily bulletin series).
+Last updated: 2026-10-22 (task 4 started: category lists drafted; history limited to 12 months).
 
 ---
 
@@ -104,6 +104,8 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   listed by `crawler bulletins` (mapping: `data/official/mapping/civil_defense_bulletin.yaml`).
 - Not built: the Civil Defense website itself (stale since September; its addresses return the
   listing), Lebanonfiles and Kataeb (bot check / browser-built).
+- **Civil Defense data (owner, 2026-10-22):** the owner will try to obtain the bulletin archive
+  directly; it enters through the official import path (task 8) when it arrives.
 - **First month in the store (2026-10-22): 267 articles** from all eleven sources, and
   **12 bulletin days out of 30**. Only **one** of those days has the breakdown by fire type
   (19 Oct, from Lebanon24): NNA, which carries most bulletins, gives its first line only, and the
@@ -111,7 +113,15 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   bulletin archive from Civil Defense or NNA (a data request), or NNA's full text — which loads
   from its robots-forbidden `/api/`, so we do not take it.
 
-### Task 4 — Filter + extraction
+### Task 4 — Filter + extraction (started 2026-10-22)
+- **What each article must yield (owner, 2026-10-22):** the type of location, the location, the
+  type of hazard, the damage (deaths, injuries, buildings burned…) and the date. Location type and
+  hazard each take **one primary tag and up to four more**; both lists must be mutually exclusive
+  and exhaustive, built from what the NFPA/NFIRS use, and kept simple.
+- **Draft 0.1: `crawler/taxonomy.yaml`** — 12 location categories (52 sub-types) and 15 hazards,
+  each closed by "not established", with a rule wherever two entries could compete. It replaces
+  the brief's `property_class` and `cause_reported`; `origin` (accidental / deliberate / conflict)
+  stays separate. **Refined with the owner from real catches** — he will teach what to look for.
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
 - Extraction: Haiku 4.5 on the Batch API with structured output (`output_config.format`, JSON
   schema derived from `incident.schema.json` minus server-side fields). One request per article;
@@ -138,6 +148,7 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 ### Task 6 — Tier 2 + backfill
 Same adapters pointed at archives, month by month, resumable (state in the private store), so a
 run that times out picks up where it stopped. Sanity plot of monthly counts.
+**Scope (owner, 2026-10-22): the last 12 months.** The 10-year history is parked.
 
 ### Task 7 — Site v1
 Load the `frontend-design` and `dataviz` skills first. Observable Plot charts from the aggregate
