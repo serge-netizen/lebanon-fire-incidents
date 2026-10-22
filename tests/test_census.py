@@ -1,8 +1,9 @@
 import datetime as dt
 
-from crawler.census import Window, arabic_date, news_sitemap, nna
+from crawler.census import Window, news_sitemap, nna
 from crawler.fetch import Page
 from crawler.filter import census_kind
+from crawler.sources.common import arabic_date
 
 TODAY = dt.date(2026, 10, 22)
 

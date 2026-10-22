@@ -27,6 +27,7 @@ from zoneinfo import ZoneInfo
 from crawler import config
 from crawler.fetch import Page, PoliteClient
 from crawler.filter import census_kind
+from crawler.sources.common import arabic_date  # used by the Lebanon Debate probe
 
 BEIRUT = ZoneInfo(config.TIMEZONE)
 
@@ -46,10 +47,6 @@ STATUS_ONLY = {
     "kataeb": "https://www.kataeb.org/category/" + quote("متفرقات"),
 }
 LEBANON_DEBATE = "https://www.lebanondebate.com/category/134-" + quote("المحلية")
-# Levantine month names as Lebanese sites print them.
-AR_MONTHS = {"كانون الثاني": 1, "شباط": 2, "آذار": 3, "نيسان": 4, "أيار": 5, "حزيران": 6, "تموز": 7,
-             "آب": 8, "أيلول": 9, "تشرين الأول": 10, "تشرين الثاني": 11, "كانون الأول": 12}
-AR_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 
 @dataclass
@@ -206,16 +203,6 @@ def elnashra(c: PoliteClient, w: Window) -> Result:
     seen: set[str] = set()
     r.items = [i for i in r.items if not (i.title in seen or seen.add(i.title))]
     return r
-
-
-def arabic_date(text: str) -> dt.date | None:
-    """'الخميس ٢٢ تشرين الأول ٢٠٢٦' → 2026-10-22."""
-    t = text.translate(AR_DIGITS)
-    for name, month in AR_MONTHS.items():
-        m = re.search(rf"(\d{{1,2}})\s+{name}\s+(\d{{4}})", t)
-        if m:
-            return dt.date(int(m.group(2)), month, int(m.group(1)))
-    return None
 
 
 def lebanon_debate(c: PoliteClient, w: Window, max_pages: int = 150) -> Result:

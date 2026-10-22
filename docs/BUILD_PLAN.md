@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-22 (task 2 done; task 3 step A, the source census, done — §8 and §9).
+Last updated: 2026-10-22 (task 3 built: two machines, eleven sources, the daily bulletin series).
 
 ---
 
@@ -87,15 +87,23 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - Nine governorates (owner's decision 2026-10-22): Keserwan-Jbeil applied over OCHA's eight from
   `governorates.csv`, as code `LBKJ`; OCHA's own assignment kept as `ocha_adm1_pcode`.
 
-### Task 3 — Tier 1 adapters
-- One class per outlet on the `Source` contract (`crawler/sources/base.py`), each with a saved
-  page in `fixtures/` so parser tests run offline and a parser break shows up as a red test.
-- Shared polite fetcher: robots.txt honoured, 1 request/second per host, `Cache-Control: no-cache`.
-- Seen-URL state in the private store, so a URL is fetched once across runs.
-- NNA: discovery needs no browser (its daily sitemaps carry the headline in each address);
-  article text still needs Playwright, in its own job step.
-- **The source list needs revising before this task starts — see §8.** Google News is no longer a
-  fallback: its robots.txt forbids it.
+### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
+- **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources
+  they can reach (Lebanon24, LBCI, Al Jadeed, MTV, Annahar, Tayyar, Lebanon Debate) three times a
+  day (`crawl.yml`). **The owner's Mac** reads the four that block GitHub (NNA, Elnashra, Janoubia,
+  L'Orient Today) three times a day and at log-in (`scripts/home-crawl.sh`, launchd). A Mac that
+  was asleep or off catches up on its next run, back to 60 days (_chosen_). No purchase.
+- Each run: discover → keyword filter (BRIEF §3) → fetch new candidates → save the text in the
+  private store (`raw/<source>/<month>/`). An address is fetched once (`state/fetched/`); a failed
+  fetch is retried next run. Files are split per source, so the two machines never collide.
+- **NNA gives its lead paragraph only.** Its article text loads from `/api/`, which its robots.txt
+  forbids; most NNA items are republished in full by the other outlets.
+- **The Civil Defense daily bulletin** is parsed without a model (`crawler/bulletin.py`) into
+  `data/official/daily_tallies.csv`: missions, fires and fires by type per day, each row checked
+  (parts must add up; flagged, never corrected). Words not yet mapped land in `fires_other` and are
+  listed by `crawler bulletins` (mapping: `data/official/mapping/civil_defense_bulletin.yaml`).
+- Not built: the Civil Defense website itself (stale since September; its addresses return the
+  listing), Lebanonfiles and Kataeb (bot check / browser-built).
 
 ### Task 4 — Filter + extraction
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
@@ -155,6 +163,13 @@ That gives about **$0.002 per article on Haiku**, so **~$2–6 a month** ongoing
 20,000 articles). Most of the gap is output tokens: evidence quotes are not free. Task 4 measures
 the real numbers on the golden set before any backfill runs.
 
+**Revised 2026-10-22 with measured volumes.** Real Lebanese fire stories are rare (§9), but the
+brief's keyword filter is deliberately broad ("explosion", "smoke", "generator"): from the GitHub
+sources alone, **54 articles passed it in two days**. At ~$0.003 an article (Haiku 4.5 on the Batch
+API, Sonnet 5 re-reading about one in four) that is **~$2–4 a month**. A stricter first check —
+fire words plus a Lebanese place, both free — would cut it below $1. Ten years of history, one
+time: **~$20–70** (_assumes today's density in past years; unknown_).
+
 ## 5. Choices made in the scaffold (all _chosen_, all changeable)
 
 | Choice | Why |
@@ -172,6 +187,7 @@ the real numbers on the golden set before any backfill runs.
 | # | What | Needed by | Time |
 | --- | --- | --- | --- |
 | 1 | ~~`PRIVATE_DATA_TOKEN` secret~~ **done 2026-10-22**: verified by a crawl run that checked out the private repo. Renew before it expires on 2027-10-22 | task 3 | done |
+| 1b | ~~A machine in Lebanon~~ **done 2026-10-22**: the owner's own Mac, background job installed | task 3 | done |
 | 2 | ~~8 or 9 governorates~~ **decided 2026-10-22: nine** (Keserwan-Jbeil separate) | task 5 | done |
 | 3 | Anthropic API key as the `ANTHROPIC_API_KEY` secret, with a monthly spend cap set in the Anthropic console | task 4 | 5 min |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |

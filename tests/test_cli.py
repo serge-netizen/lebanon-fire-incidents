@@ -7,4 +7,4 @@ def test_dry_run_passes(capsys):
 
 
 def test_unbuilt_command_says_so():
-    assert main(["run"]) == 2
+    assert main(["backfill"]) == 2

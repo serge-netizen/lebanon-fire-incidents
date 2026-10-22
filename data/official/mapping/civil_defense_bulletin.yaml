@@ -1,0 +1,32 @@
+# Civil Defense daily bulletin ("…X مهمة خلال الـ24 ساعة الماضية"): the words it prints → our
+# column names. Matched after folding (diacritics removed, alef forms unified), so either
+# spelling works. A fire type not listed here is counted in fires_other and reported by
+# `crawler bulletins`, so this file can grow (BRIEF §7).
+sections:
+  اخماد حرائق: fires
+  انقاذ: rescue
+  اسعاف: ambulance
+  خدمات عامة: public_services
+  سلامة عامة: public_safety
+fire_types:
+  كهرباء: electrical
+  منازل: homes
+  اعشاب: grass
+  اعشاب يابسة: grass
+  احراج: forest
+  حرج: forest
+  اشجار: trees
+  اشجار مثمرة: fruit_trees
+  اشجار حرجية: forest
+  اراض زراعية: farmland
+  نفايات: rubbish
+  آليات: vehicles
+  آليات متنوعة: vehicles
+  سيارات: vehicles
+  محال تجارية: shops
+  مؤسسات: businesses
+  معامل: factories
+  مصانع: factories
+  مستودعات: warehouses
+  مولدات: generators
+  مولد: generators

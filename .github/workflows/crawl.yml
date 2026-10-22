@@ -1,16 +1,17 @@
 name: crawl
-# Three runs a day at 06:00, 13:00 and 20:00 Beirut.
-# GitHub cron is UTC and has no time zones: 03/10/17 UTC is exact in summer (UTC+3)
-# and one hour early in winter (UTC+2). Chosen so the evening run never slips past midnight.
+# Three runs a day at about 06:00, 13:00 and 20:00 Beirut. GitHub cron is UTC with no time zones:
+# 03/10/17 UTC is exact in summer (UTC+3), one hour early in winter (UTC+2).
 # Minute 17, not 0: GitHub delays and drops scheduled runs most at the top of the hour
 # (measured 2026-10-10 → 22: runs started 3–7 h late; see docs/BUILD_PLAN.md §8).
+# This job reads the sources GitHub's servers can reach; the owner's Mac reads the other four
+# (scripts/home-crawl.sh). Both write to the private store; only counts appear in this log.
 on:
   schedule:
     - cron: "17 3,10,17 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write   # to commit data/published/ once publishing exists (task 5)
+  contents: write   # publishes data/official/daily_tallies.csv
 
 concurrency:
   group: crawl
@@ -19,15 +20,13 @@ concurrency:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       HAS_PRIVATE: ${{ secrets.PRIVATE_DATA_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --locked
-      # The private store (raw article text, run state) is a second, private repo.
-      # Until the PRIVATE_DATA_TOKEN secret exists, this run only dry-runs.
       - name: Check out private store
         if: ${{ env.HAS_PRIVATE == 'true' }}
         uses: actions/checkout@v5
@@ -35,5 +34,33 @@ jobs:
           repository: ${{ vars.PRIVATE_DATA_REPO }}
           token: ${{ secrets.PRIVATE_DATA_TOKEN }}
           path: private
-      - name: Crawl (dry run until adapters land in task 3)
+      - name: Crawl the sources GitHub can read
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        run: uv run crawler run --where github
+      - name: Rebuild the Civil Defense daily bulletin series
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        run: uv run crawler bulletins
+      - name: Save article text to the private store
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        working-directory: private
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add raw state
+          if ! git diff --cached --quiet; then
+            git commit -q -m "github crawl $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull -q --rebase && git push -q
+          fi
+      - name: Publish the daily bulletin series
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/official/daily_tallies.csv
+          if ! git diff --cached --quiet; then
+            git commit -q -m "data: Civil Defense daily bulletins"
+            git pull -q --rebase && git push -q
+          fi
+      - name: Dry run (no private store available)
+        if: ${{ env.HAS_PRIVATE != 'true' }}
         run: uv run crawler --dry-run

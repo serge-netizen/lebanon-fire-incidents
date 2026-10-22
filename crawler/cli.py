@@ -43,7 +43,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="crawler", description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="check wiring only; no network, no writes")
     sub = parser.add_subparsers(dest="command")
-    sub.add_parser("run", help="one scheduled crawl: discover → … → publish")
+    crawl = sub.add_parser("run", help="one crawl: discover, filter, fetch, save to the private store")
+    crawl.add_argument("--where", choices=["github", "home", "all"], required=True,
+                       help="github: sources GitHub's servers can read; home: those needing a Lebanese connection")
+    crawl.add_argument("--days", type=int, default=3)
+    crawl.add_argument("--max-fetch", type=int, default=150, help="per source, per run")
+    sub.add_parser("bulletins", help="rebuild data/official/daily_tallies.csv from the private store")
     sub.add_parser("backfill", help="crawl archives (task 6)")
     gaz = sub.add_parser("gazetteer", help="rebuild the place-name table from OCHA's spreadsheet")
     gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
@@ -63,6 +68,24 @@ def main(argv: list[str] | None = None) -> int:
         from crawler.gazetteer import build
 
         print(json.dumps(build(args.xlsx), indent=2))
+        return 0
+    if args.command == "run":
+        from crawler import pipeline
+
+        reports = pipeline.run(args.where, days=args.days, max_fetch=args.max_fetch)
+        pipeline.print_reports(reports)
+        return 0
+    if args.command == "bulletins":
+        from crawler import bulletin
+        from crawler.store import Store
+
+        found = bulletin.from_store(Store().articles())
+        bulletin.write_csv(found)
+        checks = {}
+        for b in found:
+            checks[b.check] = checks.get(b.check, 0) + 1
+        unmapped = sorted({u for b in found for u in b.unmapped})
+        print(f"bulletins: {len(found)} days, checks {checks}, unmapped fire types: {unmapped or 'none'}")
         return 0
     if args.command == "census":
         from crawler import census
