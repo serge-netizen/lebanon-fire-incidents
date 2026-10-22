@@ -11,9 +11,10 @@ OCHA publishes a new version. Everything else reads the committed parquet with p
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import io
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
 
@@ -29,6 +30,8 @@ SOURCE_URL = (
     "83dae3aa-1047-4019-9ca2-a5709810ad21/download/lbn_admin_boundaries.xlsx"
 )
 PARQUET_PATH = config.GAZETTEER_DIR / "lebanon.parquet"
+# Governorates created after OCHA's table, applied over it at load time (the parquet stays OCHA's).
+GOVERNORATES_PATH = config.GAZETTEER_DIR / "governorates.csv"
 
 # OCHA marks disputed boundary strips between cadastral areas as "Litige" (French: dispute).
 # They are polygons, not places: kept in the table, never matched by name.
@@ -60,6 +63,7 @@ class Unit:
     lon: float
     area_sqkm: float
     is_place: bool
+    ocha_adm1_pcode: str | None = None  # the governorate in OCHA's own table; None for one OCHA lacks
 
 
 def build(xlsx: Path | None = None, out: Path = PARQUET_PATH) -> dict:
@@ -121,6 +125,38 @@ def _row(level, pcode, name_en, name_ar, adm1, adm2, r) -> dict:
 
 @lru_cache(maxsize=1)
 def units() -> dict[str, Unit]:
-    """Every unit in the committed gazetteer, keyed by P-code."""
+    """Every unit, keyed by P-code: OCHA's table with today's governorates applied over it."""
     table = pq.read_table(PARQUET_PATH)
-    return {r["pcode"]: Unit(**r) for r in table.to_pylist()}
+    u = {r["pcode"]: Unit(**r, ocha_adm1_pcode=r["adm1_pcode"]) for r in table.to_pylist()}
+    with GOVERNORATES_PATH.open(encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            _apply_governorate(u, row)
+    return u
+
+
+def _apply_governorate(u: dict[str, Unit], row: dict) -> None:
+    """Move whole districts into a governorate OCHA does not have, and re-centre the one they left.
+
+    Centre points of the new and the shrunk governorate are computed, not published by OCHA: the
+    area-weighted mean of their districts' centre points.
+    """
+    districts = row["districts"].split("|")
+    left = {u[d].adm1_pcode for d in districts}
+    members = [u[d] for d in districts]
+    u[row["pcode"]] = Unit(
+        level=1, pcode=row["pcode"], name_en=row["name_en"], name_ar=row["name_ar"],
+        adm1_pcode=row["pcode"], adm2_pcode=None, lat=_centre(members, "lat"), lon=_centre(members, "lon"),
+        area_sqkm=round(sum(m.area_sqkm for m in members), 3), is_place=True, ocha_adm1_pcode=None,
+    )
+    for code, unit in list(u.items()):
+        if unit.adm2_pcode in districts:  # the districts themselves and every cadastral area in them
+            u[code] = replace(unit, adm1_pcode=row["pcode"])
+    for gov in left:
+        rest = [x for x in u.values() if x.level == 2 and x.adm1_pcode == gov]
+        u[gov] = replace(u[gov], lat=_centre(rest, "lat"), lon=_centre(rest, "lon"),
+                         area_sqkm=round(sum(x.area_sqkm for x in rest), 3))
+
+
+def _centre(units_: list[Unit], axis: str) -> float:
+    total = sum(x.area_sqkm for x in units_)
+    return round(sum(getattr(x, axis) * x.area_sqkm for x in units_) / total, 5)

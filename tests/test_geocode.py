@@ -93,6 +93,13 @@ def test_region_words_are_not_governorates():
     assert resolve("حريق في محافظة الجنوب").pcode == "LB6"
 
 
+def test_nine_governorates():
+    assert resolve("حريق في جونية").admin1["pcode"] == "LBKJ"
+    assert resolve("حريق في محافظة كسروان جبيل").pcode == "LBKJ"
+    assert resolve("حريق في محافظة جبل لبنان").pcode == "LB3"
+    assert resolve("حريق في جبل لبنان").precision == "unknown"  # in everyday use it still includes Kesrouan
+
+
 def test_english_and_french():
     assert resolve("Fire breaks out in Ashrafieh, Beirut").pcode == "10650"
     assert resolve("Blaze in the Chouf district").pcode == "LB33"
