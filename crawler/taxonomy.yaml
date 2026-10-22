@@ -1,0 +1,206 @@
+# Classification of a fire incident — DRAFT 0.1 (2026-10-22), for the owner's review.
+#
+# Built from NFIRS, the US national fire reporting system (codes from the NFPA 901 standard):
+# "location types" from its Property Use and Incident Type lists, "hazards" from its Heat Source,
+# Equipment Involved and Cause of Ignition fields — simplified and adapted to Lebanon.
+#
+# Rules that keep the lists mutually exclusive and exhaustive:
+# - Every fire gets exactly ONE primary location type and ONE primary hazard, plus up to FOUR more
+#   of each (other places it reached, other hazards present). Counts use the primary only.
+# - Primary location = where the fire started; if the article does not say, what burned most.
+#   Primary hazard  = what started it, as reported; if not reported, `not_established`.
+# - Each sub-type belongs to one category only; where two could fit, the `rule` line decides.
+# - `not_established` closes each list: the article does not say. It is an answer, not a gap.
+# - Why a fire started (accident, deliberate, war) is NOT a hazard: it is the separate `origin`
+#   field (BRIEF §6), so an arson with petrol is hazard `fuel_flammable_liquid`, origin `deliberate`.
+#
+# `cues` are Arabic words that point to an entry; they help the model and the reviewer, they do
+# not decide alone. `nfirs` codes are given where the mapping is direct — "PU" from NFIRS's Property
+# Use list, "IT" from its Incident Type list (the two reuse numbers) — to be checked against the
+# NFIRS 5.0 reference guide before the schema is fixed.
+
+location_types:
+  residential:
+    label: Residential
+    definition: Where people live or stay overnight.
+    subtypes:
+      house: {label: House or villa, nfirs: "PU 419", cues: [منزل, بيت, فيلا, دار]}
+      apartment_building: {label: Apartment building, nfirs: "PU 429", cues: [مبنى سكني, بناية, شقة]}
+      hotel: {label: Hotel, guesthouse or furnished apartments, nfirs: "PU 449", cues: [فندق, شقق مفروشة]}
+      refugee_camp: {label: Refugee camp (built), cues: [مخيم عين الحلوة, مخيم البداوي], rule: "Palestinian camps: dense built areas"}
+      informal_settlement: {label: Informal tented settlement, cues: [خيم النازحين, تجمع للنازحين], rule: "Tents of displaced people, mostly Syrian"}
+      other_residential: {label: Other residential (dormitory, barracks), nfirs: "PU 460"}
+  commercial:
+    label: Shops, restaurants and offices
+    definition: Places that sell, serve or do business.
+    subtypes:
+      shop: {label: Shop, supermarket or showroom, nfirs: "PU 500", cues: [محل, متجر, سوبرماركت, معرض]}
+      market: {label: Market or stalls, cues: [سوق, بسطات]}
+      restaurant_cafe: {label: Restaurant, café, bakery or bar, nfirs: "PU 161", cues: [مطعم, مقهى, فرن, ملهى]}
+      shopping_centre: {label: Shopping centre, cues: [مول, مجمع تجاري], rule: "A building of many shops; a single shop inside it is `shop` as another tag"}
+      office: {label: Office or bank, nfirs: "PU 599", cues: [مكتب, مصرف, شركة]}
+  industrial:
+    label: Industry and workshops
+    definition: Places that make, process or repair things.
+    subtypes:
+      factory: {label: Factory or plant, nfirs: "PU 700", cues: [معمل, مصنع]}
+      workshop: {label: Workshop or repair garage, cues: [ورشة, كاراج, منجرة, محدادة], rule: "Car repair garages belong here, not in vehicles"}
+      quarry: {label: Quarry or mine, nfirs: "PU 679", cues: [مقلع, كسارة, مرملة]}
+  storage:
+    label: Storage and yards
+    definition: Places that keep goods or materials.
+    subtypes:
+      warehouse: {label: Warehouse or depot, nfirs: "PU 891", cues: [مستودع, مخزن]}
+      scrap_yard: {label: Scrap or salvage yard, cues: [بورة, خردة, كسر]}
+      outdoor_storage: {label: Outdoor storage (timber, pallets, materials), nfirs: "PU 807"}
+  energy_fuel:
+    label: Energy and fuel sites
+    definition: Places that produce, store or sell energy. Grouped apart because they are
+      among Lebanon's most frequent and most dangerous fire sites.
+    subtypes:
+      fuel_station: {label: Fuel station, nfirs: "PU 571", cues: [محطة محروقات, محطة وقود]}
+      generator_site: {label: Generator or generator room, cues: [مولد, غرفة المولد, مولدات الاشتراك], rule: "Private and neighbourhood generators; a generator room inside a building is a second tag"}
+      electricity_network: {label: Electricity network (plant, substation, transformer, cables), nfirs: "PU 642", cues: [محول, شبكة الكهرباء, معمل الكهرباء, كابلات]}
+      fuel_gas_storage: {label: Fuel or gas storage and distribution, nfirs: "PU 645", cues: [خزانات, مستودع غاز, تعبئة الغاز, خط النفط]}
+  public_institutional:
+    label: Public and institutional buildings
+    definition: Government, education, health, worship and security.
+    subtypes:
+      government: {label: Government or municipal building, nfirs: "PU 150", cues: [سراي, بلدية, وزارة]}
+      education: {label: School, university or nursery, nfirs: "PU 200", cues: [مدرسة, جامعة, حضانة]}
+      health: {label: Hospital, clinic or care home, nfirs: "PU 300", cues: [مستشفى, مستوصف, دار للعجزة]}
+      worship: {label: Place of worship, nfirs: "PU 131", cues: [مسجد, جامع, كنيسة, دير]}
+      security: {label: Military, police or prison site, nfirs: "PU 631", cues: [ثكنة, مركز للجيش, مخفر, سجن]}
+  assembly_leisure:
+    label: Halls, sport and entertainment
+    definition: Places where people gather for events or leisure.
+    subtypes:
+      event_hall: {label: Event or wedding hall, cues: [صالة, قاعة]}
+      sports: {label: Stadium, gym or club, nfirs: "PU 120", cues: [ملعب, نادي]}
+      entertainment: {label: Cinema, theatre or amusement park, nfirs: "PU 180", cues: [سينما, مسرح, مدينة ملاهي]}
+  vehicles:
+    label: Vehicles
+    definition: Anything that moves, wherever it burned (street, car park, field).
+    subtypes:
+      car: {label: Car, pick-up or SUV, nfirs: "IT 131", cues: [سيارة, رباعية الدفع, بيك اب]}
+      truck: {label: Truck or tanker, nfirs: "IT 132", cues: [شاحنة, صهريج], rule: "Pick-ups are `car`, as in NFIRS"}
+      bus_van: {label: Bus, minibus or van, cues: [باص, فان, حافلة]}
+      motorcycle: {label: Motorcycle or scooter, cues: [دراجة نارية]}
+      boat: {label: Boat or ship, nfirs: "IT 134", cues: [مركب, باخرة, سفينة]}
+      aircraft: {label: Aircraft, nfirs: "IT 135", cues: [طائرة]}
+      machinery: {label: Construction or farm machinery, nfirs: "IT 138", cues: [جرافة, حفارة, جرار زراعي]}
+  vegetation:
+    label: Forest and wild vegetation
+    definition: Plants nobody cultivates.
+    subtypes:
+      forest: {label: Forest or woodland, nfirs: "IT 141", cues: [أحراج, حرج, غابة, صنوبر, سنديان]}
+      scrub: {label: Scrub or bushes, nfirs: "IT 142", cues: [أشجار برية, شجيرات]}
+      grass: {label: Dry grass or weeds, nfirs: "IT 143", cues: [أعشاب يابسة, أعشاب, عشب]}
+  agricultural:
+    label: Farmland and farms
+    definition: Plants or animals someone cultivates or raises.
+    subtypes:
+      crops: {label: Field crops, nfirs: "IT 171", cues: [حقل, قمح, محاصيل]}
+      orchard: {label: Orchard or olive grove, nfirs: "IT 172", cues: [بستان, زيتون, أشجار مثمرة, كروم]}
+      greenhouse_nursery: {label: Greenhouse or plant nursery, nfirs: "IT 173", cues: [خيم بلاستيكية, مشتل]}
+      farm_building: {label: Barn, hay store or animal farm, nfirs: "PU 659", cues: [مزرعة دواجن, حظيرة, تبن, قش]}
+  rubbish_waste:
+    label: Rubbish and waste
+    definition: Waste, wherever it lies.
+    subtypes:
+      street_rubbish: {label: Rubbish pile or bin, nfirs: "IT 151", cues: [نفايات, مستوعب, حاوية]}
+      dump: {label: Dump or landfill, nfirs: "IT 152", cues: [مكب, مطمر, جبل النفايات]}
+      waste_facility: {label: Waste sorting or treatment plant, cues: [معمل فرز, معمل معالجة]}
+  infrastructure_open:
+    label: Roads, infrastructure and open areas
+    definition: Outdoor places that are not vegetation, farmland or waste.
+    subtypes:
+      road: {label: Road, street or highway, nfirs: "PU 960", cues: [طريق, أوتوستراد, شارع]}
+      tunnel_bridge: {label: Tunnel or bridge, nfirs: "PU 922", cues: [نفق, جسر]}
+      transport_hub: {label: Port, airport or bus station, nfirs: "PU 170", cues: [مرفأ, مطار, محطة باصات]}
+      parking: {label: Car park, nfirs: "PU 965", cues: [موقف, مرأب]}
+      construction_site: {label: Construction site, nfirs: "PU 981", cues: [ورشة بناء]}
+      open_land: {label: Vacant lot, beach or riverbank, nfirs: "PU 936", rule: "Only when nothing above fits (e.g. burning tyres on a lot)"}
+  not_established:
+    label: Not established
+    definition: The article does not say where the fire was.
+
+hazards:
+  electrical_installation:
+    label: Electrical installation
+    definition: Wiring, panels, meters, plugs, a short circuit.
+    cues: [ماس كهربائي, عطل كهربائي, التمديدات الكهربائية, عداد, لوحة كهرباء]
+  electrical_appliance:
+    label: Electrical appliance
+    definition: A device that plugs in (heater fan, fridge, washing machine, charger).
+    rule: "Batteries and solar equipment are `battery_solar`"
+    cues: [براد, غسالة, شاحن, جهاز كهربائي]
+  battery_solar:
+    label: Batteries and solar systems
+    definition: Lithium or lead batteries, inverters, UPS, solar panels.
+    cues: [بطارية, بطاريات ليثيوم, طاقة شمسية, ألواح شمسية, انفرتر]
+  generator:
+    label: Generator
+    definition: A private or neighbourhood generator, its room or its own fuel tank.
+    cues: [مولد, مولد كهربائي, غرفة المولد]
+  fuel_flammable_liquid:
+    label: Fuel and flammable liquids
+    definition: Diesel, petrol, oil, solvents — stored, transported, spilled or poured.
+    rule: "A generator's own tank is `generator`"
+    cues: [مازوت, بنزين, محروقات, صهريج, مواد مشتعلة]
+  gas:
+    label: Gas
+    definition: Gas cylinders, gas leaks, gas pipes.
+    cues: [قارورة غاز, تسرب غاز, غاز منزلي]
+  cooking:
+    label: Cooking
+    definition: Stoves, ovens, frying oil, commercial kitchens.
+    cues: [طبخ, مطبخ, زيت القلي, فرن]
+  heating:
+    label: Heating
+    definition: Wood or diesel stoves, heaters, fireplaces, chimneys.
+    cues: [صوبيا, مدفأة, شوفاج, موقدة]
+  smoking_open_flame:
+    label: Smoking and open flame
+    definition: Cigarettes, matches, lighters, candles.
+    cues: [سيجارة, شمعة, ولاعة, أعقاب السجائر]
+  hot_work_industrial:
+    label: Hot work and industrial process
+    definition: Welding, cutting, grinding, machinery, chemical processes.
+    cues: [تلحيم, قص, مواد كيميائية]
+  open_burning:
+    label: Open burning
+    definition: Burning rubbish, stubble or weeds in the open.
+    rule: "The burning itself; a fire that then spreads is still this hazard"
+    cues: [حرق النفايات, حرق الأعشاب, تنظيف الأراضي]
+  explosive_munition_fireworks:
+    label: Explosives, munitions and fireworks
+    definition: Strikes, shelling, incendiary devices, explosions, fireworks, celebratory gunfire.
+    rule: "A gas cylinder that explodes is `gas`; a battery that explodes is `battery_solar`"
+    cues: [غارة, قصف, قذيفة, صاروخ, انفجار, مفرقعات]
+  vehicle_fault:
+    label: Vehicle fault or crash
+    definition: A vehicle's engine, electrics or a collision.
+    cues: [عطل في المحرك, حادث سير, اصطدام]
+  natural:
+    label: Natural causes
+    definition: Lightning, sun and heat, spontaneous combustion (hay, compost).
+    cues: [صاعقة, حرارة, اشتعال ذاتي]
+  spread_from_another_fire:
+    label: Spread from another fire
+    definition: Reached by a fire that started elsewhere (a forest fire reaching houses).
+    rule: "Tag the place it spread to; the original fire is its own record"
+    cues: [امتدت النيران, وصلت النيران]
+  not_established:
+    label: Not established
+    definition: The article does not say what started the fire. Also "under investigation".
+    cues: [مجهولة الأسباب, قيد التحقيق]
+
+damages:
+  deaths: People killed by the fire.
+  injuries: People injured (burns, falls), smoke inhalation excluded.
+  smoke_inhalation: People treated for smoke inhalation (حالات اختناق).
+  buildings_burned: Buildings or homes burned or damaged, as reported.
+  vehicles_burned: Vehicles burned.
+  area_burned_m2: Area burned, converted to square metres (1 dunum = 1,000 m²; 1 hectare = 10,000 m²).
+  displaced: People or families who had to leave their homes (unit as reported).
