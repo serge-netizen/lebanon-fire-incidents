@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
@@ -25,6 +26,12 @@ def dry_run() -> int:
     schema = load_schema()
     print(f"schema      ok  {config.SCHEMA_PATH.relative_to(config.REPO_ROOT)} v{schema['properties']['schema_version']['const']}")
     print(f"adapters    {len(SOURCES)} registered: {', '.join(sorted(SOURCES)) or '(none yet — task 3)'}")
+    from crawler.geocode import gazetteer
+
+    g = gazetteer()
+    levels = [u.level for u in g.by_pcode.values() if u.is_place]
+    print(f"gazetteer   {levels.count(1)} governorates, {levels.count(2)} districts, "
+          f"{levels.count(3)} cadastral areas, {len(g.index)} searchable names")
     print(f"private dir {'present' if config.PRIVATE_DIR.is_dir() else 'absent'}  {config.PRIVATE_DIR}")
     print(f"api key     {'set' if os.environ.get('ANTHROPIC_API_KEY') else 'not set'}")
     print(f"models      extract={config.EXTRACT_MODEL}  second_pass={config.SECOND_PASS_MODEL}")
@@ -38,12 +45,26 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("run", help="one scheduled crawl: discover → … → publish")
     sub.add_parser("backfill", help="crawl archives (task 6)")
+    gaz = sub.add_parser("gazetteer", help="rebuild the place-name table from OCHA's spreadsheet")
+    gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
+    geo = sub.add_parser("geocode", help="resolve a place string, e.g. 'بلدة تول - قضاء النبطية'")
+    geo.add_argument("text")
     args = parser.parse_args(argv)
 
     if args.dry_run:
         return dry_run()
     if args.command is None:
         parser.print_help()
+        return 0
+    if args.command == "gazetteer":
+        from crawler.gazetteer import build
+
+        print(json.dumps(build(args.xlsx), indent=2))
+        return 0
+    if args.command == "geocode":
+        from crawler.geocode import resolve
+
+        print(json.dumps(resolve(args.text).as_dict(), ensure_ascii=False, indent=2))
         return 0
     print(f"'{args.command}' is not built yet — see docs/BUILD_PLAN.md", file=sys.stderr)
     return 2
