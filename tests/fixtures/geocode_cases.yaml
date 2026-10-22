@@ -1,0 +1,129 @@
+# Place strings from real headlines and statements, collected 2026-10-22 (task 2 "done" test).
+# Each expected answer was decided from the text and the OCHA table BEFORE running the resolver.
+# Sources: NNA = nna-leb.gov.lb article id (headline read from the address of the article);
+# L24 = lebanon24.com RSS; CD = Civil Defense statement on the Damit forest fire (17 Oct 2025).
+# Fragments are used where the full headline names a person: no personal names in this repo.
+- text: "إخماد حريق بالقرب من مدرسة برج رحال الرسمية بعد احتراق مساحات من الأعشاب والأشجار البرية"
+  source: NNA 566164 (2026-10-01)
+  expect: {precision: village, pcode: "62283"}
+- text: "إخماد حريق في بورة للخردة والكسر في تول - قضاء النبطية"
+  source: NNA 565480 (2026-09-28)
+  expect: {precision: village, pcode: "71324"}
+- text: "اندلاع حريق في محطة محروقات عند مدخل جبيل"
+  source: NNA 565441 (2026-09-27)
+  expect: {precision: district, pcode: "LB34"}
+  why: Jbeil is a district and a town; the district is what the text makes certain
+- text: "احتراق سيارة عند جسر المدفون"
+  source: NNA 564251 (2026-09-21)
+  expect: {precision: unknown}
+  why: Madfoun is not a cadastral area, and its bridge sits on the Batroun-Jbeil boundary
+- text: "حريق كبير في أرض يابسة بسنّ الفيل وفرق الإطفاء تعمل على محاصرة النيران"
+  source: NNA 562099 (2026-09-09)
+  expect: {precision: village, pcode: "22155"}
+- text: "كشافة البيئة للسيطرة على حريق جبل النفايات في صيدا ومعالجة آثاره"
+  source: NNA 567146 (2026-10-07)
+  expect: {precision: district, pcode: "LB61"}
+  why: Saida city spans several cadastral areas
+- text: "مستشفى تبنين الحكومي يستنكر إضرام النيران في مستشفى ميس الجبل"
+  source: NNA 564004 (2026-09-19)
+  expect: {precision: governorate, pcode: "LB4", ambiguous: true}
+  why: two towns in two districts are named; only their governorate is certain
+- text: "إضرام النيران في مستشفى ميس الجبل"
+  source: NNA 564004 (2026-09-19), fragment
+  expect: {precision: village, pcode: "73250"}
+- text: "خمسة جرحى إثر غارة في النبطية الفوقا"
+  source: NNA 565904 (2026-09-30)
+  expect: {precision: village, pcode: "71113"}
+- text: "قتيل و13 جريحاً سوريا إثر تدهور سيارة فان في غلبون - قضاء جبيل"
+  source: NNA 565670 (2026-09-29)
+  expect: {precision: village, pcode: "26277"}
+- text: "انتشال جثة شاب غريق قبالة شاطئ أدما"
+  source: NNA 565478 (2026-09-28)
+  expect: {precision: village, pcode: "25156"}
+  why: OCHA names the cadastral area أدما والدفنه
+- text: "3 جرحى في حادث سير على طريق البريج – عنايا"
+  source: NNA 563930 (2026-09-18)
+  expect: {precision: village, pcode: "26253"}
+  why: only Brij is a known name; Annaya is not a cadastral area in OCHA's table
+- text: "إنقاذ أربعة أشخاص إثر سقوطهم في بلدة زبود – قضاء بعلبك"
+  source: NNA 563645 (2026-09-17)
+  expect: {precision: village, pcode: "53237"}
+- text: "الدفاع المدني أنقذ سلحفاة بحرية عالقة في شباك صيد في البترون"
+  source: NNA 563285 (2026-09-15)
+  expect: {precision: district, pcode: "LB52"}
+- text: "مركز الدفاع المدني الجديد في اتحاد بلديات المنية"
+  source: NNA 563278 (2026-09-15), fragment
+  expect: {precision: district, pcode: "LB55"}
+  why: a union of municipalities covers several towns
+- text: "الدفاع المدني: إنقاذ حيوان بري (ابن آوى) عالق في شباك في بسابا"
+  source: NNA 562896 (2026-09-13)
+  expect: {precision: village, pcode: "23386"}
+- text: "الدفاع المدني نظم دورة لشرطة بلدية زغرتا - اهدن"
+  source: NNA 562271 (2026-09-10)
+  expect: {precision: district, pcode: "LB57"}
+  why: Zgharta-Ehden is one municipality over two cadastral areas; دورة here means a training course
+- text: "الدفاع المدني: إنقاذ 22 شخصا قبالة شاطئ طرابلس"
+  source: NNA 561982 (2026-09-08)
+  expect: {precision: district, pcode: "LB56"}
+- text: "الدفاع المدني: سحب شهداء إثر غارات على كفررمان"
+  source: NNA 561668 (2026-09-07)
+  expect: {precision: village, pcode: "71133"}
+  why: OCHA writes كفر رمان with a space
+- text: "الدفاع المدني: إنقاذ مواطن من داخل بئر في الأشرفية"
+  source: NNA 568756 (2026-10-16)
+  expect: {precision: village, pcode: "10650"}
+- text: "الدفاع المدني يواكب حملة تنظيف ساحلية وبحرية في الروشة"
+  source: NNA 565129 (2026-09-25)
+  expect: {precision: district, pcode: "LB11"}
+  why: Raouche is an area of Beirut, not a cadastral area (proposed alias)
+- text: "اختتمت جولتها في الضنية وسلمت معدات لمواجهة الحرائق"
+  source: NNA 568039 (2026-10-12), fragment
+  expect: {precision: district, pcode: "LB55"}
+- text: "تجول في الشوف وتسلّم معدات للوقاية من حرائق الغابات"
+  source: NNA 565644 (2026-09-28), fragment
+  expect: {precision: district, pcode: "LB33"}
+- text: "ارتكاب العدو إبادة بيئية في الجنوب يضاعف مسؤوليتنا في حماية الغابات"
+  source: NNA 568039 (2026-10-12), fragment
+  expect: {precision: unknown}
+  why: in everyday use the South covers two governorates
+- text: "بالفيديو... حريق كبير بعد نفق حامات"
+  source: L24 2026-10-18
+  expect: {precision: village, pcode: "34287"}
+- text: "في الجنوب.. حريق سيارة تزامن مع تفجير للجيش"
+  source: L24 2026-10-20
+  expect: {precision: unknown}
+- text: "الدفاع المدني: 71 مهمة خلال ال24 ساعة الماضية"
+  source: L24 2026-10-19
+  expect: {precision: unknown}
+  why: a daily tally names no place
+- text: "في أحراج منطقة دميت – ملتقى النهرين"
+  source: CD statement (Damit forest fire), fragment
+  expect: {precision: village, pcode: "23447"}
+- text: "كما ساهم في عمليات الإطفاء بلديتا دميت وكفرحيم"
+  source: CD statement (Damit forest fire)
+  expect: {precision: district, pcode: "LB33", ambiguous: true}
+  why: two villages of the Chouf are named
+- text: "جبل لبنان الجنوبي (شحيم)"
+  source: CD statement (Damit forest fire), list of regional centres
+  expect: {precision: village, pcode: "23211"}
+- text: "البقاع (زحلة)"
+  source: CD statement (Damit forest fire), list of regional centres
+  expect: {precision: district, pcode: "LB25"}
+- text: "جبل لبنان الشمالي (جونية)"
+  source: CD statement (Damit forest fire), list of regional centres
+  expect: {precision: district, pcode: "LB35"}
+  why: Jounieh city spans three cadastral areas
+- text: "والمتن الجنوبي الساحلي (برج البراجنة)"
+  source: CD statement (Damit forest fire), list of regional centres
+  expect: {precision: governorate, pcode: "LB3", conflict: true}
+  why: Bourj El-Brajneh is in Baabda district, not Metn; the regional name does not nest, so only Mount Lebanon is certain
+- text: "بالصور... العثور على نفق في منطقة العاقورة - جبيل"
+  source: L24 2026-10
+  expect: {precision: village, pcode: "26371"}
+  why: بالصور means 'with photos' and must not match Tyre
+- text: "في بلدة راشيا الفخار - حاصبيا.. الجيش يواكب الأهالي خلال قطف الزيتون"
+  source: L24 2026-10
+  expect: {precision: village, pcode: "74118"}
+- text: "توقيف مطلوب في برقايل - عكار"
+  source: L24 2026-10
+  expect: {precision: village, pcode: "35314"}

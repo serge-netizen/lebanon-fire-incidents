@@ -18,6 +18,8 @@ dependencies = [
 # Only NNA and OTV need a real browser (BRIEF §4.3). Kept optional so the
 # everyday CI job does not download Chromium.
 browser = ["playwright>=1.55"]
+# Only needed to rebuild data/gazetteer/lebanon.parquet from the OCHA spreadsheet (task 2).
+gazetteer = ["pandas>=2.2", "openpyxl>=3.1"]
 
 [project.scripts]
 crawler = "crawler.cli:main"

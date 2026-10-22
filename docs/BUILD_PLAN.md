@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-10 (task 1, scaffold; private store and review tool decided).
+Last updated: 2026-10-22 (task 2, gazetteer; first look at the real sources, §8).
 
 ---
 
@@ -65,28 +65,34 @@ Repo layout, uv project, schema 1.0.0 with tests, CLI with `--dry-run`, Astro sk
 languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare Pages connection**
 — it needs the owner's Cloudflare account (§6).
 
-### Task 2 — Gazetteer
-- Download OCHA admin levels 0–3 from HDX; build `lebanon.parquet` with P-codes, Arabic and
-  English names, centroids. Keep shapes out of the public repo until the licence is confirmed.
-- `aliases.csv` maps spellings to P-codes. Seed from the most frequent place strings in real
-  headlines (needs task 3 output for real frequencies, so seed a first 100 by hand, then grow).
-- Matching order: exact alias → normalised Arabic (strip diacritics, unify alef/hamza forms,
-  taa marbuta/haa, alef maqsura/yaa) → **exact** match on normalised forms. **No fuzzy matching of
-  town names**: distinct villages differ by one letter. An unmatched string stays at the coarser
-  level it does establish (a caza named in the text) or `unknown`, and is queued for the alias
-  table.
-- Infer upward only: a village fills district and governorate; a district never fills a village.
-- Done test: 30 real headline strings resolve as expected.
+### Task 2 — Gazetteer ✅ (2026-10-22)
+- `data/gazetteer/lebanon.parquet`, built from OCHA's table (`cod-ab-lbn`, now **CC BY-IGO**):
+  8 governorates, 26 districts, 1,545 cadastral areas (+65 disputed strips, never matched), each
+  with Arabic and English name, P-code and OCHA's centre point. Provenance in `SOURCE.md`.
+- `crawler/geocode.py` resolves place text with six rules, written at the top of the file: exact
+  names after normalisation (no fuzzy matching); common-word names need a place cue; a district
+  name beats a same-named village; a governorate/district name clash resolves to what is certain;
+  several candidates resolve **upward** to what they share; no known name gives `unknown`.
+- `aliases.csv`: 60 rows (spellings, French/English names, cities spread over several cadastral
+  areas, colloquial regions). 42 `verified`, 18 `proposed` — **a Lebanese reviewer should read the
+  proposed ones** (e.g. "الجنوب" covering two governorates).
+- `common_words.csv`: 60 names that are also ordinary words ("عين", "مزرعة", "غابات", "صور" in
+  "بالصور"), most found by running the resolver over 998 real Lebanon24 headlines and reading
+  every match.
+- Done test: **36 real place strings** (NNA, Lebanon24, a Civil Defense statement) resolve as
+  decided beforehand; 74 tests in all. _The brief asked for 100 seeded aliases; there are 60,
+  because each one has to be true — volume will come from task 3's real place strings._
+- Not done: the 8-versus-9 governorates question (§6).
 
 ### Task 3 — Tier 1 adapters
 - One class per outlet on the `Source` contract (`crawler/sources/base.py`), each with a saved
   page in `fixtures/` so parser tests run offline and a parser break shows up as a red test.
 - Shared polite fetcher: robots.txt honoured, 1 request/second per host, `Cache-Control: no-cache`.
 - Seen-URL state in the private store, so a URL is fetched once across runs.
-- NNA via Playwright in its own job step (only that step installs Chromium).
-- Test reachability of Lebanonfiles and Google News RSS from Actions' US-based runners (open item).
-- **Risk:** outlets may block GitHub's IP ranges. Fallback if one does: route that outlet through
-  Google News RSS, which links to it.
+- NNA: discovery needs no browser (its daily sitemaps carry the headline in each address);
+  article text still needs Playwright, in its own job step.
+- **The source list needs revising before this task starts — see §8.** Google News is no longer a
+  fallback: its robots.txt forbids it.
 
 ### Task 4 — Filter + extraction
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
@@ -151,25 +157,57 @@ the real numbers on the golden set before any backfill runs.
 | Choice | Why |
 | --- | --- |
 | Arabic is the default language; `/` redirects to `/ar/` | The audience is Lebanese; a static site cannot read the browser's language |
-| Crawl at 03:00, 10:00, 17:00 UTC | GitHub cron has no time zones. Exact Beirut times in summer, one hour early in winter |
+| Crawl at 03:17, 10:17, 17:17 UTC | GitHub cron has no time zones; 17 minutes past avoids GitHub's busiest moment (§8). Beirut times in summer, one hour early in winter |
 | Repo name `lebanon-fire-incidents` | Neutral, says what it is |
 | Commit author = GitHub no-reply address | Keeps any personal or company e-mail out of a public history |
 | Fonts self-hosted (IBM Plex Sans + Plex Sans Arabic) | No third-party font request; faster; brief's first suggestion |
 | Arabic and French UI strings drafted by the model | **Need a native speaker's review before launch** |
 | Schema adds `schema_version`, `summary`, `official_record_id`, `sources[].raw_ref` | Versioning (task 9), our own one-line summary (§11), linking (§7), traceability |
 
-## 6. Waiting on the owner
+## 6. Waiting on the owner (in the order they block work)
 
-1. **Private store**: repo created; the owner creates the fine-grained token and saves it as the
-   `PRIVATE_DATA_TOKEN` secret (only the owner handles tokens).
-2. **Cloudflare Pages**: connect this repo in the Cloudflare dashboard — build command
-   `npm run build`, root directory `site`, output `dist`.
-3. **Anthropic API key** as an Actions secret, before task 4.
-4. **Review tool**: Google Sheet decided; the service-account key is needed by task 5.
-5. Brief §12 items: disclosure, reviewer, data-request contacts.
+| # | What | Needed by | Time |
+| --- | --- | --- | --- |
+| 1 | `PRIVATE_DATA_TOKEN` secret (fine-grained token, write access to the private repo only) | task 3 | 3 min |
+| 2 | 8 or 9 governorates on the site (Keserwan-Jbeil) | task 5 | a decision |
+| 3 | Anthropic API key as the `ANTHROPIC_API_KEY` secret, with a monthly spend cap set in the Anthropic console | task 4 | 5 min |
+| 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
+| 5 | Google service account + its key as a secret; the review Sheet shared with it | task 5 | 15 min |
+| 6 | The reviewer: who, and roughly how much time a day | task 5 | a decision |
+| 7 | The manual Civil Defense Facebook log, kept for the same 14 days as the pilot run | task 5 | daily, minutes |
+| 8 | Cloudflare account and the repo connected (root `site`, build `npm run build`, output `dist`) | task 7 | 10 min |
+| 9 | Disclosure/brand and the domain name | launch | a decision |
+| 10 | A native speaker to review the Arabic and French interface text, and the `proposed` aliases | launch | ~1 h |
 
 ## 7. Worth knowing
 
 - The US is replacing NFIRS with a new system, NERIS. NFIRS codes stay a sound, documented
   taxonomy for this purpose, but the methodology page should say which one we use and why.
   _Verify the NERIS rollout status before writing that page._
+
+## 8. The sources, as found on 2026-10-22 (measured, from this machine, not from GitHub's)
+
+Collected while finding real place strings for task 2. One look each: re-test from GitHub's
+servers in task 3, because sites treat data-centre addresses differently.
+
+| Source | Brief said | Found |
+| --- | --- | --- |
+| Elnashra (tier 1, "highest density") | server-rendered tag pages | **Blocked by a bot check** (Cloudflare "Just a moment…", HTTP 403) on tag pages and the sitemap. We do not get around bot checks. |
+| Civil Defense website (tier 1, official) | per-incident statements by sequential ID | **Newest statement dated 30 Sep 2026** (22 days old). The article address in the brief returns the full listing page, not the statement; the listing's dates are unreliable. Needs real parsing work. |
+| NNA (tier 1) | sitemaps + Playwright | **Works.** Daily sitemaps per category, headline in the address. Local news, 7 Sep–21 Oct: **1,641 headlines, about 8 individual fires**; the daily Civil Defense tally appears almost every day. |
+| Lebanon24 (tier 1) | ~80 items/day RSS | Two feeds: 999 items over 35 days, **3 fire headlines**. |
+| Lebanon Debate (tier 1) | listing pages | **Now built in the browser**: the HTML holds no article list. Needs Playwright. |
+| LBCI, Al Jadeed (tier 2) | RSS | Feeds work but hold only the last **10–20 items** (one to two days); use their news sitemaps. |
+| Google News (tier 2 catch-all) | RSS search | **robots.txt forbids all automated access** (and names Claude's crawlers). Dropped. |
+
+**What it means.** The reported stream of individual fires is thinner than the brief assumed
+(the brief planned on 30–80 articles a day passing the filter). Two consequences:
+- Cost (§4) will be lower than estimated — volume is the reason, not price.
+- **Coverage is the real risk.** The Civil Defense daily tally (71–176 missions a day in Sep–Oct)
+  will dwarf the number of fires we can find in the news. The methodology page must say this
+  plainly, and the official-data request (brief §7) matters more than the brief implies.
+
+**GitHub's schedule is late.** The crawl was set for 03:00, 10:00 and 17:00 UTC. Measured over
+12 days: runs started **3 to 7 hours late**, and about one run in eighteen never ran. Task 2
+moves the schedule off the top of the hour (GitHub's busiest moment); task 3 must make discovery
+catch up on missed runs by reading sitemaps by date, not "latest" listings.

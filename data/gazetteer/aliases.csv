@@ -1,1 +1,61 @@
-alias,lang,pcode,level,note
+alias,lang,level,pcode,status,basis
+Beyrouth,fr,1,LB1,verified,French name of Beirut
+Beyrouth,fr,2,LB11,verified,French name of Beirut
+Baalbeck,en,2,LB21,verified,spelling variant of the district
+Rashaya,en,2,LB23,verified,spelling variant of the district
+Western Bekaa,en,2,LB24,verified,name of the district
+West Beqaa,en,2,LB24,verified,spelling variant of the district
+Bekaa Ouest,fr,2,LB24,verified,French name of the district
+Zahleh,en,2,LB25,verified,spelling variant of the district and its town
+Shouf,en,2,LB33,verified,spelling variant of the district
+Byblos,en,2,LB34,verified,historic and French name of Jbeil
+Jbail,en,2,LB34,verified,spelling variant of the district
+Keserwan,en,2,LB35,verified,spelling variant of the district
+Kesrouan,fr,2,LB35,verified,French spelling of the district
+Kisrawan,en,2,LB35,verified,spelling variant of the district
+Metn,en,2,LB36,verified,spelling variant of the district
+Matn,en,2,LB36,verified,spelling variant of the district
+Bint Jbeil,en,2,LB41,verified,spelling variant of the district
+Hasbaiya,en,2,LB42,verified,spelling variant of the district
+Marjayoun,en,2,LB43,verified,spelling variant of the district
+Marjeyoun,en,2,LB43,verified,spelling variant of the district
+Nabatiyeh,en,1,LB4,verified,spelling variant; shared by the governorate and the district
+Nabatiyeh,en,2,LB44,verified,spelling variant; shared by the governorate and the district
+Bsharri,en,2,LB53,verified,spelling variant of the district
+Minieh-Danniyeh,en,2,LB55,verified,spelling variant of the district
+الضنية,ar,2,LB55,verified,Dennieh is the inland half of the Minieh-Dennieh district
+Dennieh,en,2,LB55,verified,Dennieh is the inland half of the Minieh-Dennieh district
+Danniyeh,en,2,LB55,verified,Dennieh is the inland half of the Minieh-Dennieh district
+Trablous,fr,2,LB56,verified,Arabic-derived name of Tripoli
+Zghorta,en,2,LB57,verified,spelling variant of the district
+Sidon,en,2,LB61,verified,English name of Saida
+Tyre,en,2,LB63,verified,English name of Sour
+Tyr,fr,2,LB63,verified,French name of Sour
+Mont Liban,fr,1,LB3,verified,French name of Mount Lebanon
+جونية,ar,2,LB35,verified,"Jounieh city spans three cadastral areas (Jounie Ghadir, Haret Sakhr, Sarba), all in Kesrouan"
+Jounieh,en,2,LB35,verified,"Jounieh city spans three cadastral areas, all in Kesrouan"
+الشويفات,ar,2,LB31,verified,"Choueifat spans three cadastral areas, all in Aley"
+Choueifat,en,2,LB31,verified,"Choueifat spans three cadastral areas, all in Aley"
+كسروان جبيل,ar,region,LB35|LB34,verified,the Keserwan-Jbeil governorate (2017) is these two districts
+Keserwan-Jbeil,en,region,LB35|LB34,verified,the Keserwan-Jbeil governorate (2017) is these two districts
+الجنوب,ar,region,LB6|LB4,proposed,"colloquial 'the South' usually covers both the South and Nabatieh governorates"
+South Lebanon,en,region,LB6|LB4,proposed,"colloquial South Lebanon covers both the South and Nabatieh governorates"
+Southern Lebanon,en,region,LB6|LB4,proposed,"colloquial South Lebanon covers both the South and Nabatieh governorates"
+Liban-Sud,fr,region,LB6|LB4,proposed,"colloquial South Lebanon covers both the South and Nabatieh governorates"
+الشمال,ar,region,LB5|LB7,proposed,"colloquial 'the North' usually still includes Akkar, a separate governorate since 2014"
+North Lebanon,en,region,LB5|LB7,proposed,"colloquial North Lebanon usually still includes Akkar"
+Liban-Nord,fr,region,LB5|LB7,proposed,"colloquial North Lebanon usually still includes Akkar"
+البقاع,ar,region,LB2|LB8,proposed,"colloquial 'the Bekaa' usually covers the whole valley, Baalbek-Hermel included"
+Bekaa,en,region,LB2|LB8,proposed,"colloquial 'the Bekaa' usually covers the whole valley, Baalbek-Hermel included"
+Beqaa,en,region,LB2|LB8,proposed,"colloquial 'the Bekaa' usually covers the whole valley, Baalbek-Hermel included"
+الضاحية الجنوبية,ar,2,LB32,proposed,Beirut's southern suburbs (Dahieh) lie in Baabda district
+الضاحية,ar,2,LB32,proposed,in Lebanese news 'the Dahieh' means Beirut's southern suburbs
+Dahieh,en,2,LB32,proposed,Beirut's southern suburbs lie in Baabda district
+Dahiyeh,en,2,LB32,proposed,Beirut's southern suburbs lie in Baabda district
+الروشة,ar,2,LB11,proposed,Raouche is a seafront area of Beirut (not a cadastral area itself)
+Raouche,en,2,LB11,proposed,Raouche is a seafront area of Beirut (not a cadastral area itself)
+زغرتا اهدن,ar,region,33111|33211,proposed,Zgharta-Ehden is one municipality covering both cadastral areas
+Zgharta-Ehden,en,region,33111|33211,proposed,Zgharta-Ehden is one municipality covering both cadastral areas
+Ashrafieh,en,3,10650,verified,spelling variant of Achrafieh
+Achrafiyeh,en,3,10650,verified,spelling variant of Achrafieh
+Sin el Fil,en,3,22155,verified,spelling variant of Sinn El-Fil

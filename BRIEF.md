@@ -5,7 +5,9 @@ This is the project brief. It is the complete context needed to build the first 
 > **Amendments (2026-10-10, scaffold session).** Where this copy differs from the original brief:
 > 1. **Sponsor name removed** (§2.3) — the repo is public and brand-neutral.
 > 2. **Model corrected** — the original named "Claude Haiku 5.5", which does not exist. Extraction uses **Claude Haiku 4.5** (`claude-haiku-4-5`); the second pass uses **Claude Sonnet 5** (`claude-sonnet-5`).
-> 3. **Private store** (§4.3, §5) — raw article text, run state, rejected items and received official files live in a separate **private** store (`private/`, a second, private repo in CI), never in this public repo. A public repo cannot hold anything privately. See `docs/BUILD_PLAN.md` §2. Decisions already taken are marked **DECIDED**; everything else is open to engineering judgement.
+> 3. **Private store** (§4.3, §5) — raw article text, run state, rejected items and received official files live in a separate **private** store (`private/`, a second, private repo in CI), never in this public repo. A public repo cannot hold anything privately. See `docs/BUILD_PLAN.md` §2.
+> 4. **Boundaries dataset** (§4.6, §12, 2026-10-22) — the HDX dataset is now `cod-ab-lbn`, licensed **CC BY-IGO** (republishing allowed with attribution). The licence question in §4.6 is settled.
+> 5. **Google News dropped** (§3 tier 2, 2026-10-22) — its robots.txt forbids all automated access, and this brief requires respecting robots.txt. Other source findings: `docs/BUILD_PLAN.md` §8. Decisions already taken are marked **DECIDED**; everything else is open to engineering judgement.
 
 ---
 
