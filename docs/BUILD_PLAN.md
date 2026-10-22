@@ -38,6 +38,8 @@ Last updated: 2026-10-22 (task 2, gazetteer; first look at the real sources, §8
 
 Created: `serge-netizen/lebanon-fire-incidents-data` (private). Its name is the Actions
 variable `PRIVATE_DATA_REPO`; the access token is the secret `PRIVATE_DATA_TOKEN`, created by the owner.
+Working since 2026-10-22: the crawl checks the private repo out on every run. The token expires
+2027-10-22; when it does, the crawl fails visibly until it is renewed.
 
 The brief said raw text is "git-tracked but not published". In a public repo, git-tracked *is*
 published. So the text needs a separate home.
@@ -168,7 +170,7 @@ the real numbers on the golden set before any backfill runs.
 
 | # | What | Needed by | Time |
 | --- | --- | --- | --- |
-| 1 | `PRIVATE_DATA_TOKEN` secret (fine-grained token, write access to the private repo only) | task 3 | 3 min |
+| 1 | ~~`PRIVATE_DATA_TOKEN` secret~~ **done 2026-10-22**: verified by a crawl run that checked out the private repo. Renew before it expires on 2027-10-22 | task 3 | done |
 | 2 | 8 or 9 governorates on the site (Keserwan-Jbeil) | task 5 | a decision |
 | 3 | Anthropic API key as the `ANTHROPIC_API_KEY` secret, with a monthly spend cap set in the Anthropic console | task 4 | 5 min |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
