@@ -170,6 +170,17 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
     tokens in per article (the longer lists add ~3,000). It showed a burned vehicle left out of
     what burned; v3 says a vehicle that burned is always listed, and that a cause the article only
     asks about stays "not established".
+- **Second run, instructions v3 (2026-10-23):** 79 articles, all answered, **$0.123**; 20 reports
+  of fires in Lebanon → **13 fires** (9 in scope, 4 war-related) once duplicates merged. My read:
+  the school now shows; the Saida dump's five articles are one fire; the war check flags the two
+  unclear fires. Wrong: a sixth Saida article (the municipality's complaint) stayed apart because
+  its place was given as "the garbage mountain" without the town, and a UNIFIL vehicle was left out
+  of what burned. Instructions v4 take the town from a name ("بلدية صيدا"), add "other vehicle,
+  type not stated", and a count of burned vehicles now implies a vehicle (deduced).
+- **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
+  line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
+  have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also
+  stored the page menu instead of the article: a reader bug to fix (task 3 work).
 - **Known issue:** Lebanon24 serves one article under two addresses (sitemap and feed); across
   runs the same story can be stored twice. Dedupe now merges the two (same headline); the
   fetched-state key should still be the article number.

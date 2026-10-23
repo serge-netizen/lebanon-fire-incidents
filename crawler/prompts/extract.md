@@ -21,9 +21,9 @@ Rules:
 2. Never write a person's name anywhere. In evidence quotes, replace names with […].
 3. summary: one English sentence in your own words, no names.
 4. occurred_on: YYYY-MM-DD when the article gives or clearly implies the date of the fire ("yesterday" counts from the publication date); otherwise null. date_precision says how sure.
-5. place_text: the place exactly as printed, most specific first, with the district if given (e.g. "بلدة تول - قضاء النبطية"). Null if no place is given.
+5. place_text: the place exactly as printed, most specific first, with the district if given (e.g. "بلدة تول - قضاء النبطية"). Include the town even when the article names it only inside another name ("بلدية صيدا" gives صيدا). Null if no place is given.
 6. site_primary: the facility or place where the fire started; if the article does not say, the one that burned most; "not_established" if it names none. site_others: up to {max_others} other facilities or places the fire reached, damaged or threatened, or that the article names as next to it ("near a school" puts the school here).
-7. material_primary: what burned first or most, as stated; "not_established" if the article does not say. material_others: up to {max_others} more things stated as burning. A vehicle that burned (a car, a truck, a patrol vehicle, "آلية") is always in what burned.
+7. material_primary: what burned first or most, as stated; "not_established" if the article does not say. material_others: up to {max_others} more things stated as burning. A vehicle that burned (a car, a truck, a patrol vehicle, "آلية") is always in what burned; "vehicle_other" when its type is not stated.
 8. hazard_primary: what started or fed the fire, as stated; "not_established" if the article does not say or says it is under investigation. hazard_others: up to {max_others} other hazards the article mentions. Read the whole article: a headline may ask a question the text answers. A cause stated as likely counts as stated; causes the article only asks about, or offers as alternatives without settling, go in hazard_others, with hazard_primary "not_established" and origin "unknown".
 9. origin, one of:
 {origins}

@@ -37,6 +37,13 @@ def test_a_sub_type_entry_replaces_its_category():
     assert "diesel_fuel_oil" in bakery["materials"] and "cooking_oil_fat" in restaurant["materials"]
 
 
+def test_a_count_of_burned_vehicles_implies_a_vehicle():
+    unnamed = derive.deduced(FIRE | {"site_primary": "road", "material_primary": "not_established", "vehicles_burned": 1})
+    assert unnamed["materials"][0] == "vehicle_other"
+    named = derive.deduced(FIRE | {"site_primary": "road", "material_primary": "truck", "vehicles_burned": 1})
+    assert "vehicle_other" not in named["materials"]
+
+
 def test_nothing_is_deduced_from_an_unknown_site():
     d = derive.deduced(FIRE | {"site_primary": "not_established"})
     assert d["materials"] == [] and d["hazards"] == []

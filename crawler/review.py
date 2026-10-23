@@ -38,6 +38,8 @@ ARTICLE_COLUMNS = [("Fire", 6), ("Outlet", 11), ("Published", 11), ("Headline", 
                    ("Evidence: Claude's quotes from the article", 70)]
 SET_ASIDE_COLUMNS = [("#", 5), ("Published", 11), ("Outlet", 11), ("Headline", 60), ("Set aside as", 14),
                      ("Summary (Claude)", 60), ("Confidence", 10)]
+LIST_COLUMNS = [("List", 12), ("Id", 22), ("Label", 34), ("Definition or rule", 50), ("Arabic words that point to it", 34),
+                ("Deduced: usually burns there", 38), ("Deduced: usually starts fires there", 38), ("YOUR COMMENT", 40)]
 SET_ASIDE_AS = {"aggregate_report": "totals", "background": "background", "not_a_fire": "not a fire", "abroad": "abroad"}
 DAMAGE_TEXT = {  # (one, several)
     "deaths": ("dead", "dead"), "injuries": ("injured", "injured"),
@@ -57,8 +59,11 @@ def _site(code: str) -> str:
 
 
 def _reported(record: dict, kind: str, label_kind: str) -> str:
-    codes = [c for c in (record[f"{kind}_primary"], *record[f"{kind}_others"]) if c != tx.NOT_ESTABLISHED]
-    return "; ".join(tx.labels()[label_kind][c] for c in codes) or "not established"
+    labels = tx.labels()[label_kind]
+    others = [labels[c] for c in record[f"{kind}_others"]]
+    if record[f"{kind}_primary"] != tx.NOT_ESTABLISHED:
+        return "; ".join([labels[record[f"{kind}_primary"]], *others])
+    return "not established" + (f" (also named: {'; '.join(others)})" if others else "")
 
 
 def _location(r: Resolution) -> str:
@@ -95,6 +100,36 @@ def fire_row(n: int, i: Incident) -> list:
         _origin(rec, d["origin"]), _damage(rec), ", ".join(rec["responders"]), "\n".join(checks),
         round(rec["confidence"], 2), "", "",
     ]
+
+
+def list_rows() -> list[list]:
+    """Every entry of the lists, for the owner to correct or extend: a site category, then its
+    sub-types with what is deduced from them."""
+    t, labels = tx.lists(), tx.labels()
+
+    def typical(table: str, kind: str, *keys: str) -> str:
+        values = next((t[table][k] for k in keys if k in t[table]), [])
+        return "; ".join(labels[kind][v] for v in values)
+
+    def text(entry: dict, *fields: str) -> str:
+        return " ".join(entry[f] for f in fields if entry.get(f))
+
+    rows = []
+    for category, v in t["site_types"].items():
+        rows.append(["Site", category, v["label"].upper(), text(v, "definition", "rule"), "",
+                     typical("typical_materials", "material", category), typical("typical_hazards", "hazard", category), ""])
+        for sub, s in (v.get("subtypes") or {}).items():
+            rows.append(["Site", sub, s["label"], text(s, "rule"), "، ".join(s.get("cues", [])),
+                         typical("typical_materials", "material", sub, category),
+                         typical("typical_hazards", "hazard", sub, category), ""])
+    for group in t["materials"].values():
+        rows.append(["What burned", "", group["label"].upper(), text(group, "definition"), "", "", "", ""])
+        rows += [["What burned", k, f"{m['label']} [class {m['fire_class']}]", text(m, "rule", "note"),
+                  "، ".join(m.get("cues", [])), "", "", ""] for k, m in group["items"].items()]
+    rows += [["Hazard", k, h["label"], text(h, "definition", "rule"), "، ".join(h.get("cues", [])), "", "", ""]
+             for k, h in t["hazards"].items()]
+    rows += [["Origin", k, o["label"], o["definition"], "", "", "", ""] for k, o in t["origins"].items()]
+    return rows
 
 
 # ---------------------------------------------------------------- the workbook
@@ -172,6 +207,8 @@ def write(path: Path, store: Store | None = None) -> dict:
         (("Same fire: two articles are merged when their places match (same village, or a village inside the same "
          "district), their dates are at most two days apart, and their sites agree. 'Articles' says how many and from "
          "which outlets."), False),
+        (("The sheet 'Lists' shows every category with the Arabic words that point to it and what is deduced from each "
+          "site. Correct an entry, or add one on a new row, in its yellow 'YOUR COMMENT' column."), False),
     ]
     if batch.stale:
         lines.append((f"{batch.stale} classifications made with older instructions are not shown.", False))
@@ -184,6 +221,7 @@ def write(path: Path, store: Store | None = None) -> dict:
     _sheet(wb, "War-related (not shown)", FIRE_COLUMNS, [fire_row(n, i) for n, i in enumerate(war, start=1)], review_cols=2)
     _sheet(wb, "Articles", ARTICLE_COLUMNS, articles)
     _sheet(wb, "Set aside", SET_ASIDE_COLUMNS, [[n, *row] for n, row in enumerate(set_aside, start=1)])
+    _sheet(wb, "Lists", LIST_COLUMNS, list_rows(), review_cols=1)
     if failed:
         _sheet(wb, "Not classified", [("#", 5), ("Published", 11), ("Outlet", 11), ("Headline", 60), ("Why", 30)],
                [[n, *row] for n, row in enumerate(failed, start=1)])

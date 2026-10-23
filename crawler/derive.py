@@ -36,15 +36,19 @@ def _typical(table: str, site: str) -> list[str]:
 
 
 def deduced(record: dict) -> dict:
-    """What the main site and the main hazard imply, leaving out what is already reported."""
+    """What the main site and the main hazard imply, leaving out what is already reported. A count
+    of burned vehicles with no vehicle among what burned implies one, of a type not stated."""
     burned = {record["material_primary"], *record["material_others"]}
     hazards = {record["hazard_primary"], *record["hazard_others"]}
+    materials = _typical("typical_materials", record["site_primary"])
+    if record.get("vehicles_burned") and not any(tx.material_group().get(m) == "vehicles" for m in burned):
+        materials = ["vehicle_other", *materials]
     origin = None
     if record["origin"] == "unknown":
         origin = next((o for o, implied_by in tx.lists()["origin_from_hazard"].items()
                        if record["hazard_primary"] in implied_by), None)
     return {
-        "materials": [m for m in _typical("typical_materials", record["site_primary"]) if m not in burned],
+        "materials": [m for m in dict.fromkeys(materials) if m not in burned],
         "hazards": [h for h in _typical("typical_hazards", record["site_primary"]) if h not in hazards],
         "origin": origin,
     }
