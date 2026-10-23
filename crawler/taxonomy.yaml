@@ -197,6 +197,7 @@ materials:
       boat: {label: "Boat or ship", fire_class: "A, B", nfirs: "IT 134", cues: [مركب, باخرة, سفينة]}
       aircraft: {label: "Aircraft", fire_class: "A, B", nfirs: "IT 135", cues: [طائرة]}
       machinery: {label: "Construction or farm machinery", fire_class: "A, B", nfirs: "IT 138", cues: [جرافة, حفارة, جرار زراعي]}
+      vehicle_other: {label: "Other vehicle, or type not stated (military, UN)", fire_class: "A, B", nfirs: "IT 130", cues: [آلية, مركبة, آليات]}
   fuels_liquids:
     label: Fuels and flammable liquids
     items:

@@ -57,8 +57,11 @@ def _site(code: str) -> str:
 
 
 def _reported(record: dict, kind: str, label_kind: str) -> str:
-    codes = [c for c in (record[f"{kind}_primary"], *record[f"{kind}_others"]) if c != tx.NOT_ESTABLISHED]
-    return "; ".join(tx.labels()[label_kind][c] for c in codes) or "not established"
+    labels = tx.labels()[label_kind]
+    others = [labels[c] for c in record[f"{kind}_others"]]
+    if record[f"{kind}_primary"] != tx.NOT_ESTABLISHED:
+        return "; ".join([labels[record[f"{kind}_primary"]], *others])
+    return "not established" + (f" (also named: {'; '.join(others)})" if others else "")
 
 
 def _location(r: Resolution) -> str:

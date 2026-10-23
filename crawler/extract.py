@@ -27,7 +27,7 @@ from crawler.store import Store
 
 # The instructions, as UTF-8 text (BRIEF §11); the lists are filled in from the taxonomy.
 PROMPT_PATH = Path(__file__).parent / "prompts" / "extract.md"
-PROMPT_VERSION = "3"  # bump whenever the instructions or the lists change; stored with every result
+PROMPT_VERSION = "4"  # bump whenever the instructions or the lists change; stored with every result
 EFFORT = "medium"     # Haiku 5.5's default; chosen, to be tuned on the owner's corrections
 MAX_OTHERS = 4        # owner, 2026-10-22: one main tag and up to four more (site, burned, hazard)
 MAX_TEXT_CHARS = 20_000

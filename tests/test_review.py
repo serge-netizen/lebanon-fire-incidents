@@ -46,4 +46,6 @@ def test_workbook_has_one_row_per_fire(tmp_path):
     assert row["Site — main"] == "Dump or landfill (Waste sites)" and row["What burned — reported (main first)"] == "Household rubbish"
     assert "Household rubbish" not in row["What burned — deduced, NOT reported"]
     assert row["Damage (reported)"] == "1 injured"
+    possible = {"hazard_primary": "not_established", "hazard_others": ["munitions_explosives"]}
+    assert review._reported(possible, "hazard", "hazard") == "not established (also named: Munitions and explosives)"
     assert [c.value for c in wb["Articles"]["A"]][1:] == ["F1", "F1", "W1"]
