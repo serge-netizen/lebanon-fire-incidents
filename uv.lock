@@ -206,6 +206,9 @@ gazetteer = [
     { name = "openpyxl" },
     { name = "pandas" },
 ]
+review = [
+    { name = "openpyxl" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -219,6 +222,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28" },
     { name = "jsonschema", extras = ["format"], specifier = ">=4.23" },
     { name = "openpyxl", marker = "extra == 'gazetteer'", specifier = ">=3.1" },
+    { name = "openpyxl", marker = "extra == 'review'", specifier = ">=3.1" },
     { name = "pandas", marker = "extra == 'gazetteer'", specifier = ">=2.2" },
     { name = "playwright", marker = "extra == 'browser'", specifier = ">=1.55" },
     { name = "pyarrow", specifier = ">=21" },
@@ -226,7 +230,7 @@ requires-dist = [
     { name = "rapidfuzz", specifier = ">=3.13" },
     { name = "trafilatura", specifier = ">=2.0" },
 ]
-provides-extras = ["browser", "gazetteer"]
+provides-extras = ["browser", "gazetteer", "review"]
 
 [package.metadata.requires-dev]
 dev = [

@@ -53,6 +53,8 @@ def main(argv: list[str] | None = None) -> int:
     ext.add_argument("--limit", type=int, default=None, help="at most this many articles")
     ext.add_argument("--force", action="store_true", help="re-read articles already classified")
     ext.add_argument("--workers", type=int, default=4)
+    rev = sub.add_parser("review", help="write the owner's review workbook from the classifications")
+    rev.add_argument("--out", type=Path, required=True)
     sub.add_parser("backfill", help="crawl archives (task 6)")
     gaz = sub.add_parser("gazetteer", help="rebuild the place-name table from OCHA's spreadsheet")
     gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
@@ -96,6 +98,11 @@ def main(argv: list[str] | None = None) -> int:
 
         totals = extract.run(limit=args.limit, force=args.force, workers=args.workers)
         print(json.dumps(totals, indent=1))  # counts and cost only: job logs are public
+        return 0
+    if args.command == "review":
+        from crawler import review
+
+        print(json.dumps(review.write(args.out), indent=1))
         return 0
     if args.command == "census":
         from crawler import census
