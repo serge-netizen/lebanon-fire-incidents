@@ -27,9 +27,10 @@ STATE_DIR = PRIVATE_DIR / "state"
 REJECTED_DIR = PRIVATE_DIR / "rejected"
 PRIVATE_OFFICIAL_DIR = PRIVATE_DIR / "official"
 
-# Models (BRIEF §4.4, as amended). Batch API halves the price of both.
-EXTRACT_MODEL = "claude-haiku-4-5"
-SECOND_PASS_MODEL = "claude-sonnet-5"
+# Models (BRIEF §4.4): Claude Haiku 5.5 reads every candidate article; the current Sonnet
+# re-reads the doubtful ones. The Batch API halves the price of both.
+EXTRACT_MODEL = "claude-haiku-5-5"
+SECOND_PASS_MODEL = "claude-sonnet-5-5"
 SECOND_PASS_BELOW_CONFIDENCE = 0.7  # Chosen in the brief, not measured. Revisit after the golden set (task 4).
 
 # Crawl etiquette (BRIEF §3).

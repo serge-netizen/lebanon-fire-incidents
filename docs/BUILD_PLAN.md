@@ -4,7 +4,7 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-22 (task 4 started: category lists drafted; history limited to 12 months).
+Last updated: 2026-10-23 (task 4: lists v0.2 after the owner's review; extraction built on Claude Haiku 5.5).
 
 ---
 
@@ -118,16 +118,28 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   type of hazard, the damage (deaths, injuries, buildings burned…) and the date. Location type and
   hazard each take **one primary tag and up to four more**; both lists must be mutually exclusive
   and exhaustive, built from what the NFPA/NFIRS use, and kept simple.
-- **Draft 0.1: `crawler/taxonomy.yaml`** — 12 location categories (52 sub-types) and 15 hazards,
-  each closed by "not established", with a rule wherever two entries could compete. It replaces
-  the brief's `property_class` and `cause_reported`; `origin` (accidental / deliberate / conflict)
-  stays separate. **Refined with the owner from real catches** — he will teach what to look for.
+- **Lists v0.2 (`crawler/taxonomy.yaml`), after the owner's review 2026-10-23.** Four words kept
+  apart: **site** (what kind of place burned: 15 categories, 63 sub-types — restaurants, shops
+  with malls, and offices separated; light and heavy industry separated; industrial storage
+  added), **location** (the map: the gazetteer of task 2), **hazard** (what started or fed it:
+  15), **material** (what was burning: 14, each with its NFPA 10 fire class). Each list is
+  closed by "not established". They replace the brief's `property_class` and `cause_reported`;
+  `origin` (accidental / deliberate / conflict) stays separate. **Refined with the owner from
+  real catches** — he will teach what to look for.
+- **Materials: reported, never inferred.** A record carries the materials its article names. What
+  a kind of site usually contains (`typical_materials`) is a separate lookup, shown labelled as
+  typical and never counted as a finding (owner's question 2026-10-23; recommendation sent).
+- **Extraction built (`crawler/extract.py`, `crawler/prompts/extract.md`):** Claude Haiku 5.5 with
+  structured outputs held to a schema generated from the lists, so every tag is a listed id. A
+  free first check sends only fire stories (fire words in the headline or opening): 78 of the
+  first 289 articles. Runs on GitHub (`extract.yml`), where the key is; results go to the private
+  store. Second pass (Claude Sonnet 5.5) not built yet.
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
-- Extraction: Haiku 4.5 on the Batch API with structured output (`output_config.format`, JSON
-  schema derived from `incident.schema.json` minus server-side fields). One request per article;
-  output is a **list** of items, each typed `incident` / `aggregate_report` / `not_a_fire`.
+- Extraction: Haiku 5.5 with structured output (`output_config.format`), one request per
+  article; output is a **list** of items, each typed `incident` / `aggregate_report` / `not_a_fire`.
+  Routine runs move to the Batch API (half price) once the instructions settle.
 - The system prompt is identical for every request and is cached, cutting its input cost.
-- Second pass on Sonnet 5 when confidence < 0.7 (_chosen in the brief_) or casualties are present.
+- Second pass on Sonnet 5.5 when confidence < 0.7 (_chosen in the brief_) or casualties are present.
 - Names: the schema has no field that can hold one; a post-check also rejects any evidence quote
   that matches a name pattern and sends it to review.
 - Golden set: 50 articles hand-labelled **by a person** (the owner or the reviewer), never by the
@@ -165,7 +177,13 @@ workflow.
 
 ## 4. What it costs to run — _estimates, to be measured in task 4_
 
-Claude prices from the current price list: Haiku 4.5 at $1 / $5 per million input / output
+> **Superseded 2026-10-23.** Everything below this note was priced on Claude Haiku 4.5. The brief's
+> model, Claude Haiku 5.5, costs $0.10 / $0.50 per million input / output tokens (prompts up to
+> 100K tokens) — a tenth of Haiku 4.5. _Estimate, to be replaced by the first run's measured cost:_
+> about **$0.001 an article**, so **cents a month** at today's volume (about 80 fire articles a
+> month pass the free first check) and **about $1–2 for twelve months of history**.
+
+Claude prices from the price list used on 2026-10-10: Haiku 4.5 at $1 / $5 per million input / output
 tokens, Sonnet 5 at $2 / $10; the Batch API halves both.
 
 | Assumption (_chosen, not measured_) | Value |

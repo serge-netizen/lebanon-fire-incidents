@@ -1,0 +1,43 @@
+name: extract
+# Task 4: Claude classifies the fire articles in the private store (crawler/extract.py).
+# Manual for now; joins the crawl once the owner has reviewed the first results.
+# Counts and cost appear in this public log; the classifications go to the private store.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "At most this many articles (empty = every one not yet classified)"
+        default: "100"
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - name: Check out private store
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.PRIVATE_DATA_REPO }}
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - name: Classify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LIMIT: ${{ inputs.limit }}
+        run: uv run crawler extract ${LIMIT:+--limit "$LIMIT"}
+      - name: Save the classifications to the private store
+        working-directory: private
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extracted
+          if ! git diff --cached --quiet; then
+            git commit -q -m "extract $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull -q --rebase && git push -q
+          fi

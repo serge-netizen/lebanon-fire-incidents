@@ -49,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
     crawl.add_argument("--days", type=int, default=3)
     crawl.add_argument("--max-fetch", type=int, default=150, help="per source, per run")
     sub.add_parser("bulletins", help="rebuild data/official/daily_tallies.csv from the private store")
+    ext = sub.add_parser("extract", help="Claude classifies the fire articles in the private store (task 4)")
+    ext.add_argument("--limit", type=int, default=None, help="at most this many articles")
+    ext.add_argument("--force", action="store_true", help="re-read articles already classified")
+    ext.add_argument("--workers", type=int, default=4)
     sub.add_parser("backfill", help="crawl archives (task 6)")
     gaz = sub.add_parser("gazetteer", help="rebuild the place-name table from OCHA's spreadsheet")
     gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
@@ -86,6 +90,12 @@ def main(argv: list[str] | None = None) -> int:
             checks[b.check] = checks.get(b.check, 0) + 1
         unmapped = sorted({u for b in found for u in b.unmapped})
         print(f"bulletins: {len(found)} days, checks {checks}, unmapped fire types: {unmapped or 'none'}")
+        return 0
+    if args.command == "extract":
+        from crawler import extract
+
+        totals = extract.run(limit=args.limit, force=args.force, workers=args.workers)
+        print(json.dumps(totals, indent=1))  # counts and cost only: job logs are public
         return 0
     if args.command == "census":
         from crawler import census
