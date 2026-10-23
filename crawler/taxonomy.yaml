@@ -1,13 +1,21 @@
-# Classification of a fire incident — DRAFT 0.1 (2026-10-22), for the owner's review.
+# Classification of a fire incident — DRAFT 0.2 (2026-10-23), after the owner's first review.
+#
+# Four things are classified, and the words are kept apart (owner, 2026-10-23):
+# - SITE type: what kind of place burned (a house, a fuel station, a forest)        → `site_types`
+# - LOCATION: where it is on the map (village, district, governorate)               → the gazetteer
+#   (crawler/geocode.py), not this file
+# - HAZARD: what started or fed the fire (a generator, gas, an electrical fault)    → `hazards`
+# - MATERIAL: what was burning (furniture, cooking oil, chemicals)                   → `materials`
 #
 # Built from NFIRS, the US national fire reporting system (codes from the NFPA 901 standard):
-# "location types" from its Property Use and Incident Type lists, "hazards" from its Heat Source,
-# Equipment Involved and Cause of Ignition fields — simplified and adapted to Lebanon.
+# site types from its Property Use and Incident Type lists, hazards from Heat Source, Equipment
+# Involved and Cause of Ignition, materials from Type of Material First Ignited — simplified and
+# adapted to Lebanon.
 #
 # Rules that keep the lists mutually exclusive and exhaustive:
-# - Every fire gets exactly ONE primary location type and ONE primary hazard, plus up to FOUR more
+# - Every fire gets exactly ONE primary site type and ONE primary hazard, plus up to FOUR more
 #   of each (other places it reached, other hazards present). Counts use the primary only.
-# - Primary location = where the fire started; if the article does not say, what burned most.
+# - Primary site = where the fire started; if the article does not say, what burned most.
 #   Primary hazard  = what started it, as reported; if not reported, `not_established`.
 # - Each sub-type belongs to one category only; where two could fit, the `rule` line decides.
 # - `not_established` closes each list: the article does not say. It is an answer, not a gap.
@@ -19,7 +27,7 @@
 # Use list, "IT" from its Incident Type list (the two reuse numbers) — to be checked against the
 # NFIRS 5.0 reference guide before the schema is fixed.
 
-location_types:
+site_types:
   residential:
     label: Residential
     definition: Where people live or stay overnight.
@@ -30,29 +38,53 @@ location_types:
       refugee_camp: {label: Refugee camp (built), cues: [مخيم عين الحلوة, مخيم البداوي], rule: "Palestinian camps: dense built areas"}
       informal_settlement: {label: Informal tented settlement, cues: [خيم النازحين, تجمع للنازحين], rule: "Tents of displaced people, mostly Syrian"}
       other_residential: {label: Other residential (dormitory, barracks), nfirs: "PU 460"}
-  commercial:
-    label: Shops, restaurants and offices
-    definition: Places that sell, serve or do business.
+  shops:
+    label: Shops and shopping malls
+    definition: Places that sell goods.
     subtypes:
       shop: {label: Shop, supermarket or showroom, nfirs: "PU 500", cues: [محل, متجر, سوبرماركت, معرض]}
+      shopping_mall: {label: Shopping mall or centre, cues: [مول, مجمع تجاري, سنتر], rule: "A building of many shops; one shop inside it is `shop` as another tag"}
       market: {label: Market or stalls, cues: [سوق, بسطات]}
-      restaurant_cafe: {label: Restaurant, café, bakery or bar, nfirs: "PU 161", cues: [مطعم, مقهى, فرن, ملهى]}
-      shopping_centre: {label: Shopping centre, cues: [مول, مجمع تجاري], rule: "A building of many shops; a single shop inside it is `shop` as another tag"}
-      office: {label: Office or bank, nfirs: "PU 599", cues: [مكتب, مصرف, شركة]}
-  industrial:
-    label: Industry and workshops
-    definition: Places that make, process or repair things.
+  food_drink:
+    label: Restaurants and cafés
+    definition: Places that prepare or serve food and drink.
     subtypes:
-      factory: {label: Factory or plant, nfirs: "PU 700", cues: [معمل, مصنع]}
+      restaurant: {label: Restaurant or snack, nfirs: "PU 161", cues: [مطعم, سناك]}
+      cafe_bar: {label: Café, bar or nightclub, nfirs: "PU 162", cues: [مقهى, كافيه, ملهى]}
+      bakery: {label: Bakery or pastry shop, cues: [فرن, أفران, حلويات], rule: "It bakes on site, so it belongs here rather than in shops"}
+  offices:
+    label: Offices and banks
+    definition: Places of office work.
+    subtypes:
+      office: {label: Office or company premises, nfirs: "PU 599", cues: [مكتب, شركة]}
+      bank: {label: Bank or money exchange, nfirs: "PU 592", cues: [مصرف, بنك, صيرفة]}
+  light_industry:
+    label: Light industry and workshops
+    definition: Making or repairing finished goods, at small or medium scale.
+    rule: "Producing or processing chemicals, plastics, foam, rubber, metal or building materials in bulk is heavy industry"
+    subtypes:
       workshop: {label: Workshop or repair garage, cues: [ورشة, كاراج, منجرة, محدادة], rule: "Car repair garages belong here, not in vehicles"}
-      quarry: {label: Quarry or mine, nfirs: "PU 679", cues: [مقلع, كسارة, مرملة]}
+      food_processing: {label: Food or drink factory, cues: [معمل ألبان, معمل حلويات, مطحنة]}
+      textile_clothing: {label: Textile or clothing factory, cues: [معمل خياطة, معمل أقمشة]}
+      furniture_wood: {label: Furniture or wood factory, cues: [معمل مفروشات, معمل خشب]}
+      printing_packaging: {label: Printing or packaging plant, cues: [مطبعة, معمل كرتون]}
+      factory_unspecified: {label: Factory, product not stated, nfirs: "PU 700", cues: [معمل, مصنع], rule: "Only when the article does not say what is made"}
+  heavy_industry:
+    label: Heavy industry
+    definition: Producing or processing bulk or hazardous materials at large scale.
+    subtypes:
+      chemicals_plastics: {label: Chemicals, paint, plastics, foam or rubber plant, cues: [معمل اسفنج, معمل بلاستيك, معمل دهانات, مواد كيميائية]}
+      recycling: {label: Recycling plant (plastic, paper, metal), cues: [معمل تدوير, إعادة تدوير]}
+      metal: {label: Metal works or foundry, cues: [معمل حديد, مسبك]}
+      building_materials: {label: Cement, asphalt or concrete plant, cues: [معمل إسمنت, معمل زفت, معمل باطون]}
+      quarry: {label: Quarry, crusher or sand pit, nfirs: "PU 679", cues: [مقلع, كسارة, مرملة]}
   storage:
     label: Storage and yards
     definition: Places that keep goods or materials.
     subtypes:
-      warehouse: {label: Warehouse or depot, nfirs: "PU 891", cues: [مستودع, مخزن]}
+      warehouse: {label: Warehouse or depot for goods, nfirs: "PU 891", cues: [مستودع, مخزن]}
+      industrial_storage: {label: Industrial storage (raw materials, chemicals, timber, pallets), nfirs: "PU 807", cues: [مواد أولية, مستودع مواد كيميائية, مستودع أخشاب], rule: "Fuel and gas storage is `fuel_gas_storage`"}
       scrap_yard: {label: Scrap or salvage yard, cues: [بورة, خردة, كسر]}
-      outdoor_storage: {label: Outdoor storage (timber, pallets, materials), nfirs: "PU 807"}
   energy_fuel:
     label: Energy and fuel sites
     definition: Places that produce, store or sell energy. Grouped apart because they are
@@ -204,3 +236,42 @@ damages:
   vehicles_burned: Vehicles burned.
   area_burned_m2: Area burned, converted to square metres (1 dunum = 1,000 m²; 1 hectare = 10,000 m²).
   displaced: People or families who had to leave their homes (unit as reported).
+
+# What was burning — recorded ONLY when the article says it (owner's question 2026-10-23, see
+# `typical_materials` below for the other half). `fire_class` follows NFPA 10: A ordinary solids,
+# B flammable liquids and gases, C live electrical equipment, D combustible metals, K cooking oil.
+materials:
+  furniture_textiles: {label: Furniture, mattresses and textiles, fire_class: A, cues: [مفروشات, أثاث, فرش, ملابس, أقمشة, سجاد]}
+  wood_paper: {label: Wood, paper and cardboard, fire_class: A, cues: [خشب, أخشاب, ورق, كرتون]}
+  plastics_foam_rubber: {label: Plastics, foam (sponge), rubber and tyres, fire_class: A, cues: [بلاستيك, اسفنج, نايلون, مطاط, دواليب, إطارات]}
+  goods_stock: {label: Goods and stock (mixed), fire_class: A, cues: [بضائع, محتويات]}
+  vegetation_crops: {label: Trees, grass, crops and hay, fire_class: A, cues: [أشجار, أعشاب, تبن, قش, محاصيل]}
+  rubbish: {label: Rubbish and waste, fire_class: A, cues: [نفايات]}
+  fuel_flammable_liquids: {label: Fuel, oil, paint and solvents, fire_class: B, cues: [مازوت, بنزين, زيوت, دهانات, مذيبات]}
+  gas: {label: Gas (LPG, natural gas), fire_class: B, cues: [غاز, قوارير غاز]}
+  cooking_oil: {label: Cooking oil and fat, fire_class: K, cues: [زيت القلي, زيت الطبخ]}
+  electrical_equipment: {label: Electrical equipment, appliances and cables, fire_class: C, cues: [كابلات, أجهزة كهربائية, عداد, محول]}
+  batteries: {label: Batteries, fire_class: C, cues: [بطاريات, بطارية ليثيوم], note: "Lithium batteries need specific agents; NFPA 10 has no class of its own for them"}
+  chemicals: {label: Chemicals, pesticides and fertilisers, fire_class: depends, cues: [مواد كيميائية, مبيدات, أسمدة]}
+  metals: {label: Combustible metals (magnesium, aluminium dust), fire_class: D}
+  explosives: {label: Explosives, munitions and fireworks, fire_class: none, cues: [ذخائر, مفرقعات, متفجرات]}
+  not_established: {label: Not established, definition: "The article does not say what was burning"}
+
+# What a site usually contains. NOT a finding about any fire: shown apart from what an article
+# reports, labelled as typical, never counted as a reported material. Draft for the owner's review.
+typical_materials:
+  residential: [furniture_textiles, electrical_equipment, gas, cooking_oil, wood_paper, plastics_foam_rubber]
+  shops: [goods_stock, plastics_foam_rubber, wood_paper, electrical_equipment]
+  food_drink: [cooking_oil, gas, electrical_equipment, furniture_textiles]
+  offices: [wood_paper, electrical_equipment, furniture_textiles]
+  light_industry: [wood_paper, furniture_textiles, plastics_foam_rubber, electrical_equipment, fuel_flammable_liquids]
+  heavy_industry: [chemicals, plastics_foam_rubber, fuel_flammable_liquids, metals, gas]
+  storage: [goods_stock, chemicals, plastics_foam_rubber, wood_paper]
+  energy_fuel: [fuel_flammable_liquids, gas, electrical_equipment, batteries]
+  public_institutional: [furniture_textiles, wood_paper, electrical_equipment]
+  assembly_leisure: [furniture_textiles, electrical_equipment, plastics_foam_rubber]
+  vehicles: [fuel_flammable_liquids, plastics_foam_rubber, batteries]
+  vegetation: [vegetation_crops]
+  agricultural: [vegetation_crops, plastics_foam_rubber, fuel_flammable_liquids]
+  rubbish_waste: [rubbish, plastics_foam_rubber]
+  infrastructure_open: [rubbish, vegetation_crops, plastics_foam_rubber]
