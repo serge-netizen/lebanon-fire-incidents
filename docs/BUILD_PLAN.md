@@ -141,9 +141,33 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   where the article asks "explosion or fault?"), one debatable (Tebnine: open burning or the
   battery as primary hazard), and one caused by the list itself ("سنتر", a commercial building,
   given as a mall cue). Review workbook: `private/review/2026-10-23-first-batch.xlsx`.
+- **Owner's second review (2026-10-23)** and what changed — lists v0.3, instructions v2:
+  - **War-related fires are out of scope but logged** (BRIEF amendment 9). Claude marks the origin
+    `conflict_related`; code also counts as war-related any fire with a munitions hazard or
+    munitions burning. A second check flags, for review, any other fire whose article uses war
+    words (`filter_patterns.yaml`, `war`). Fireworks, celebratory gunfire and gas or battery
+    explosions stay in scope (_chosen_).
+  - **Three questions kept apart:** the **site** is the facility or place that witnessed the fire
+    (14 categories, 58 sub-types), never the thing that burned; **what burned** is its own list
+    (42 items in 12 groups, one main and up to four more); the **hazard** list splits fireworks
+    (civil) from munitions (war). So vehicles moved to what burned, and the rubbish and vegetation
+    site categories became waste sites and natural areas — the repetition the owner saw on row 13
+    (a dump: site "rubbish", material "rubbish", typical "rubbish"). A facility the fire reached or
+    was next to ("near a school") is now another site.
+  - **Reported or deduced, everywhere** (`crawler/derive.py`): Claude records only what the article
+    says; code adds, labelled, what such a site usually contains, what usually starts fires there,
+    the origin a hazard implies (an electrical fault is accidental), the publication date when no
+    fire date is given, and the district and governorate of a village.
+  - A new record type `background` (an appeal, prevention, a fire long past) for the two first-run
+    mistakes of that kind.
+  - **Same fire, several articles → one row** (`crawler/dedupe.py`, brought forward from task 5).
+  - **Bug found:** in draft 0.2, every label with a comma was cut at the comma (YAML's inline form),
+    so the workbook showed "Plastics" for "Plastics, foam (sponge), rubber and tyres". Fixed; a test
+    now fails on any stray key.
+  - Results made with older instructions are classified again on the next run; `force` redoes all.
 - **Known issue:** Lebanon24 serves one article under two addresses (sitemap and feed); across
-  runs the same story can be stored twice. Merged by dedupe in task 5; the fetched-state key
-  should be the article number.
+  runs the same story can be stored twice. Dedupe now merges the two (same headline); the
+  fetched-state key should still be the article number.
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
 - Extraction: Haiku 5.5 with structured output (`output_config.format`), one request per
   article; output is a **list** of items, each typed `incident` / `aggregate_report` / `not_a_fire`.
@@ -157,9 +181,16 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   requires the figure on the methodology page whatever it is.
 
 ### Task 5 — Dedupe, geocode, review, publish
-- Cluster key from the brief: same district + same incident group + within 36 h (_chosen in the
-  brief_) + place-string similarity. Official values win on conflict; conflicting casualty counts
-  → `needs_review`.
+- **Dedupe v1 built early (2026-10-23, `crawler/dedupe.py`).** Two reports are the same fire when
+  they come from different articles, their dates are at most **two days** apart (_chosen_: the
+  brief's 36 hours is too tight when most articles give no fire date and dumps and forests burn for
+  days), their places nest at district level or finer, and their sites agree. A report joins a
+  group only if it matches every report in it, so near-matches never chain two fires together.
+  Conflicting counts or origins are flagged for review. Still to do: official values win on
+  conflict (task 8), and a stable incident id.
+- The published schema (`crawler/schema/incident.schema.json`) still has §6's `property_class` and
+  `cause_reported`: to be aligned with the lists (site, what burned, hazard; reported and deduced
+  apart) before anything is published.
 - Review sheet: **DECIDED 2026-10-10 — a Google Sheet**, as in the brief, on the owner's Google
   account. A service account (a robot Google user) reads and writes it; its key is an Actions
   secret created by the owner. Set up at the start of task 5.

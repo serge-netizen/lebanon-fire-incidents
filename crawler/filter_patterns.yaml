@@ -20,6 +20,16 @@ exclude:
   - "نشرة إحتمال إندلاع حرائق|موجة الحر"
   - "cease-?fire|gunfire|opened fire|under fire|exchange of fire|fireworks?"
 
+# War words (owner, 2026-10-23: war-related fires are logged but out of scope). A second check
+# after Claude's: a fire in Lebanon that Claude did not mark war-related, in an article with any
+# of these words, is flagged for review — never dropped. Matched anywhere in headline and text.
+# "انفجار" is left out on purpose: gas and battery explosions are civil fires. "غارة" must start
+# a word (after و ف ب ل ك or ال), so "مغارة" (a cave) does not count; "العدوى" (infection) neither.
+war:
+  - "(?<!\\w)[وفبلك]{0,2}(?:ال)?غار(?:ة|ات)|العدو(?!ى)|قصف|قذيفة|قذائف|صاروخ|صواريخ|مسيرة|الاحتلال|إسرائيل|ذخائر|ذخيرة|قنبلة|قنابل|عنقودية|فوسفور|تفجير|لغم|ألغام|استهداف|استهدف|اليونيفيل"
+  - "\\bisrael|airstrike|air strike|drone strike|shelling|\\bmissiles?\\b|\\brockets?\\b|munitions|ordnance|unifil"
+  - "israélien|\\bfrappes?\\b|bombardement|\\bobus\\b|finul"
+
 # Narrower sets used by the source census (task 3) to tell fire stories from the rest.
 census:
   fire: "حريق|حرائق|إخماد|أخمد|تخمد|النيران|نيران|اشتعال|احتراق|التهمت|تلتهم|\\bfires?\\b|\\bblazes?\\b|wildfires?|\\bincendies?\\b|feux? de forêt"

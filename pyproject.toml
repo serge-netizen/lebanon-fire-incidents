@@ -27,7 +27,11 @@ review = ["openpyxl>=3.1"]
 crawler = "crawler.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.4", "ruff>=0.13"]
+dev = [
+    "openpyxl>=3.1",
+    "pytest>=8.4",
+    "ruff>=0.13",
+]
 
 [build-system]
 requires = ["hatchling>=1.27"]
