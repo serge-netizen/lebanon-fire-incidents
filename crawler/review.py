@@ -39,9 +39,12 @@ ARTICLE_COLUMNS = [("Fire", 6), ("Outlet", 11), ("Published", 11), ("Headline", 
 SET_ASIDE_COLUMNS = [("#", 5), ("Published", 11), ("Outlet", 11), ("Headline", 60), ("Set aside as", 14),
                      ("Summary (Claude)", 60), ("Confidence", 10)]
 SET_ASIDE_AS = {"aggregate_report": "totals", "background": "background", "not_a_fire": "not a fire", "abroad": "abroad"}
-DAMAGE_TEXT = {"deaths": "{} dead", "injuries": "{} injured", "smoke_inhalation": "{} treated for smoke",
-               "buildings_burned": "{} buildings", "vehicles_burned": "{} vehicles",
-               "area_burned_m2": "{:,.0f} m² burned", "displaced": "{} displaced"}
+DAMAGE_TEXT = {  # (one, several)
+    "deaths": ("dead", "dead"), "injuries": ("injured", "injured"),
+    "smoke_inhalation": ("treated for smoke", "treated for smoke"),
+    "buildings_burned": ("building burned", "buildings burned"), "vehicles_burned": ("vehicle burned", "vehicles burned"),
+    "area_burned_m2": ("m² burned", "m² burned"), "displaced": ("displaced", "displaced"),
+}
 
 
 # ---------------------------------------------------------------- cell text
@@ -71,7 +74,8 @@ def _origin(record: dict, implied: str | None) -> str:
 
 
 def _damage(record: dict) -> str:
-    return "; ".join(DAMAGE_TEXT[k].format(record[k]) for k in DAMAGES if record[k] is not None) or "none stated"
+    parts = [f"{record[k]:,.0f} {DAMAGE_TEXT[k][record[k] != 1]}" for k in DAMAGES if record[k] is not None]
+    return "; ".join(parts) or "none stated"
 
 
 def _outlets(i: Incident) -> str:
