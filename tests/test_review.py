@@ -39,7 +39,10 @@ def test_workbook_has_one_row_per_fire(tmp_path):
     counts = review.write(out, Store(tmp_path))
     assert (counts["fires"], counts["war_related"], counts["merged"], counts["set_aside"]) == (1, 1, 1, 1)
     wb = load_workbook(out)
-    assert wb.sheetnames == ["Read me", "Fires in Lebanon", "War-related (not shown)", "Articles", "Set aside"]
+    assert wb.sheetnames == ["Read me", "Fires in Lebanon", "War-related (not shown)", "Articles", "Set aside", "Lists"]
+    lists = {row[1]: row for row in wb["Lists"].iter_rows(min_row=2, values_only=True)}
+    assert lists["bakery"][5].startswith("Diesel and fuel oil") and "Cooking" in lists["restaurant"][6]
+    assert lists["vehicle_other"][2].startswith("Other vehicle")
     header = [c.value for c in wb["Fires in Lebanon"][1]]
     row = dict(zip(header, [c.value for c in wb["Fires in Lebanon"][2]], strict=True))
     assert row["Articles"] == "nna, janoubia" and row["Fire date"] == "2026-10-07 (publication date)"
