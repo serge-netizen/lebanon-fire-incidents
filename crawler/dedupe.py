@@ -194,6 +194,8 @@ def merge(group_: list[Report]) -> Incident:
     words = sorted({w for r in reports for w in r.war_words})
     if scope_ == IN_SCOPE and words:
         flags.append(f"war words in the article ({'، '.join(words)}): war-related?")
+    if scope_ == IN_SCOPE and any("munitions_explosives" in i["hazard_others"] for i in items):
+        flags.append("munitions named as a possible cause: war-related?")
     place = reports[0].place
     if not place.pcode:
         flags.append("place not found in the gazetteer")

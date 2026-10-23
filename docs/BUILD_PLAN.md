@@ -137,15 +137,16 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - **First run (2026-10-23):** 78 articles, none refused or failed, 79 items, **22 fires in
   Lebanon**; the rest set aside as abroad, not a fire, or daily totals. My own read of the 22
   before the owner's review: three wrong (a general appeal against arson and a regrowth story
-  taken as incidents; a UNIFIL vehicle fire given "electrical installation" and "accidental"
-  where the article asks "explosion or fault?"), one debatable (Tebnine: open burning or the
+  taken as incidents; a UNIFIL vehicle fire given "electrical installation" — _corrected
+  2026-10-23: I had also called "accidental" wrong because the headline asks "explosion or
+  fault?", but the text answers it, a short circuit with no security incident_), one debatable (Tebnine: open burning or the
   battery as primary hazard), and one caused by the list itself ("سنتر", a commercial building,
   given as a mall cue). Review workbook: `private/review/2026-10-23-first-batch.xlsx`.
-- **Owner's second review (2026-10-23)** and what changed — lists v0.3, instructions v2:
+- **Owner's second review (2026-10-23)** and what changed — lists v0.3, instructions v3:
   - **War-related fires are out of scope but logged** (BRIEF amendment 9). Claude marks the origin
-    `conflict_related`; code also counts as war-related any fire with a munitions hazard or
-    munitions burning. A second check flags, for review, any other fire whose article uses war
-    words (`filter_patterns.yaml`, `war`). Fireworks, celebratory gunfire and gas or battery
+    `conflict_related`; code also counts as war-related any fire whose main hazard is munitions,
+    or where munitions burned. A second check flags, for review, any other fire whose article
+    uses war words (`filter_patterns.yaml`, `war`) or names munitions as a possible cause. Fireworks, celebratory gunfire and gas or battery
     explosions stay in scope (_chosen_).
   - **Three questions kept apart:** the **site** is the facility or place that witnessed the fire
     (14 categories, 58 sub-types), never the thing that burned; **what burned** is its own list
@@ -165,6 +166,10 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
     so the workbook showed "Plastics" for "Plastics, foam (sponge), rubber and tyres". Fixed; a test
     now fails on any stray key.
   - Results made with older instructions are classified again on the next run; `force` redoes all.
+  - Trial of instructions v2 on 10 articles (2026-10-23): all answered, $0.0152 — about 12,200
+    tokens in per article (the longer lists add ~3,000). It showed a burned vehicle left out of
+    what burned; v3 says a vehicle that burned is always listed, and that a cause the article only
+    asks about stays "not established".
 - **Known issue:** Lebanon24 serves one article under two addresses (sitemap and feed); across
   runs the same story can be stored twice. Dedupe now merges the two (same headline); the
   fetched-state key should still be the article number.

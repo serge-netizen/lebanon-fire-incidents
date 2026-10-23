@@ -77,6 +77,8 @@ def test_merge_fills_gaps_and_flags_disagreements():
 def test_war_words_are_flagged_on_a_fire_in_scope():
     incident = dedupe.merge([report("a", words=("قصف",))])
     assert incident.scope == "in_scope" and any("war words" in f for f in incident.flags)
+    possible = dedupe.merge([report("a", hazard_others=["munitions_explosives", "vehicle_fault"])])
+    assert possible.scope == "in_scope" and any("possible cause" in f for f in possible.flags)
 
 
 def test_load_keeps_current_classifications_and_sorts_them(tmp_path):
