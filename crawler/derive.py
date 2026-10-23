@@ -23,11 +23,10 @@ def scope(item: dict) -> str:
         return item["record_type"]
     if not item["is_lebanon"]:
         return ABROAD
-    hazards = [item["hazard_primary"], *item["hazard_others"]]
     burned = [item["material_primary"], *item["material_others"]]
-    if item["origin"] == "conflict_related" or "munitions_explosives" in hazards or "munitions" in burned:
+    if item["origin"] == "conflict_related" or item["hazard_primary"] == "munitions_explosives" or "munitions" in burned:
         return WAR
-    return IN_SCOPE
+    return IN_SCOPE  # munitions among the other hazards is only a possibility: flagged by dedupe.merge
 
 
 def _typical(table: str, site: str) -> list[str]:

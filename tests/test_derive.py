@@ -13,7 +13,8 @@ FIRE = {
 @pytest.mark.parametrize("change,expected", [
     ({}, "in_scope"),
     ({"origin": "conflict_related"}, "war_related"),
-    ({"hazard_others": ["munitions_explosives"]}, "war_related"),
+    ({"hazard_primary": "munitions_explosives"}, "war_related"),
+    ({"hazard_others": ["munitions_explosives"]}, "in_scope"),  # only a possibility: flagged, not excluded
     ({"material_primary": "munitions"}, "war_related"),
     ({"hazard_primary": "fireworks"}, "in_scope"),  # celebrations are civil fires
     ({"hazard_primary": "gas"}, "in_scope"),        # so is a gas cylinder explosion

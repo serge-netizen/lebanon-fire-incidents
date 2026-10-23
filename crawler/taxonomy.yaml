@@ -188,6 +188,7 @@ materials:
       scrap: {label: "Scrap and salvage", fire_class: A, cues: [خردة, كسر]}
   vehicles:
     label: Vehicles
+    definition: A vehicle of any kind that burned (سيارة، آلية، مركبة), wherever it was — always listed here.
     items:
       car: {label: "Car, pick-up or SUV", fire_class: "A, B", nfirs: "IT 131", cues: [سيارة, رباعية الدفع, بيك اب]}
       truck: {label: "Truck or tanker", fire_class: "A, B", nfirs: "IT 132", cues: [شاحنة, صهريج], rule: "Pick-ups are `car`, as in NFIRS"}
