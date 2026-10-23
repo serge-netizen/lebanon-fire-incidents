@@ -4,13 +4,15 @@ from types import SimpleNamespace
 import anthropic
 
 from crawler import extract
+from crawler import taxonomy as tx
 from crawler.store import Store
 
 ITEM = {
     "record_type": "incident", "is_lebanon": True, "summary": "Fire in a scrap yard in Toul.",
     "occurred_on": "2026-09-28", "date_precision": "day", "place_text": "تول - قضاء النبطية",
-    "site_primary": "scrap_yard", "site_others": ["scrap_yard", "warehouse", "house", "road", "car", "truck"],
-    "hazard_primary": "not_established", "hazard_others": ["not_established"], "materials": ["rubbish", "rubbish"],
+    "site_primary": "scrap_yard", "site_others": ["scrap_yard", "warehouse", "house", "road", "parking", "forest"],
+    "material_primary": "scrap", "material_others": ["scrap", "rubber_tyres", "rubber_tyres", "not_established"],
+    "hazard_primary": "not_established", "hazard_others": ["not_established"],
     "origin": "unknown", "deaths": 0, "injuries": 0, "smoke_inhalation": None, "buildings_burned": None,
     "vehicles_burned": None, "area_burned_m2": -5, "displaced": None, "responders": ["civil_defense"],
     "evidence": [{"field": "place_text", "quote": "في تول"}], "confidence": 1.4,
@@ -43,9 +45,13 @@ def test_schema_and_prompt_cover_every_id():
     s = extract.schema()["properties"]["items"]["items"]
     assert s["required"] == list(s["properties"])
     prompt = extract.system_prompt()
-    for site in extract.site_category():
+    assert "{" not in prompt  # every placeholder filled
+    for site in tx.site_ids():
         assert site in s["properties"]["site_primary"]["enum"] and f"{site}:" in prompt
-    for h in extract.hazard_ids() + extract.material_ids():
+    for m in tx.material_ids():
+        assert m in s["properties"]["material_others"]["items"]["enum"] and f"  {m}:" in prompt
+    assert tx.NOT_ESTABLISHED in s["properties"]["material_primary"]["enum"]
+    for h in tx.hazard_ids() + tx.origin_ids():
         assert f"{h}:" in prompt
 
 
@@ -57,9 +63,8 @@ def test_free_first_check():
 
 def test_answer_is_cleaned():
     item = extract.clean_item(dict(ITEM))
-    assert item["site_others"] == ["warehouse", "house", "road", "car"]  # primary dropped, four kept
-    assert item["hazard_others"] == [] and item["materials"] == ["rubbish"]
-    assert item["site_category"] == "storage" and item["site_categories_other"] == ["residential", "infrastructure_open", "vehicles"]
+    assert item["site_others"] == ["warehouse", "house", "road", "parking"]  # main tag dropped, four kept
+    assert item["material_others"] == ["rubber_tyres"] and item["hazard_others"] == []
     assert item["area_burned_m2"] is None and item["confidence"] == 1.0
 
 
@@ -85,3 +90,6 @@ def test_run_saves_results_and_skips_them_next_time(tmp_path):
     assert (tmp_path / "extracted" / "nna" / "2026-09" / "abc.json").exists()
     assert totals["cost_usd"] == round((3000 * 0.10 + 700 * 0.50) / 1e6, 4)
     assert extract.run(store=store, client=client)["articles"] == 0 and client.messages.calls == 1
+    saved = tmp_path / "extracted" / "nna" / "2026-09" / "abc.json"
+    saved.write_text(json.dumps(json.loads(saved.read_text()) | {"prompt_version": "0"}), encoding="utf-8")
+    assert extract.run(store=store, client=client)["articles"] == 1  # older instructions: classified again

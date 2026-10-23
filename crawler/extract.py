@@ -2,7 +2,9 @@
 
 Model: Claude Haiku 5.5, the model the brief names (amendment 2, corrected 2026-10-23). Structured
 outputs hold the answer to a JSON schema built from the taxonomy, so every tag is one of the
-listed ids. Article text and evidence quotes stay in the private store; job logs show counts only.
+listed ids. Claude records only what the article reports; what can be deduced from it is added
+by crawler/derive.py. Article text and evidence quotes stay in the private store; job logs show
+counts only.
 
 A free first check decides what reaches the model: fire words in the headline or the opening
 300 characters. Civil Defense daily bulletins are read by crawler/bulletin.py instead.
@@ -17,51 +19,25 @@ from functools import lru_cache
 from pathlib import Path
 
 import anthropic
-import yaml
 
 from crawler import config
+from crawler import taxonomy as tx
 from crawler.filter import census_kind, fold
 from crawler.store import Store
 
-TAXONOMY_PATH = Path(__file__).with_name("taxonomy.yaml")
 # The instructions, as UTF-8 text (BRIEF §11); the lists are filled in from the taxonomy.
 PROMPT_PATH = Path(__file__).parent / "prompts" / "extract.md"
-PROMPT_VERSION = "1"  # bump whenever the instructions change; stored with every result
+PROMPT_VERSION = "2"  # bump whenever the instructions or the lists change; stored with every result
 EFFORT = "medium"     # Haiku 5.5's default; chosen, to be tuned on the owner's corrections
-MAX_OTHERS = 4        # owner, 2026-10-22: one primary tag and up to four more
-MAX_MATERIALS = 5
+MAX_OTHERS = 4        # owner, 2026-10-22: one main tag and up to four more (site, burned, hazard)
 MAX_TEXT_CHARS = 20_000
 # $ per million tokens (input, output) for prompts up to 100K tokens; from the claude-api
 # reference cached 2026-10-06 — re-check before quoting a budget.
 PRICE = {"claude-haiku-5-5": (0.10, 0.50)}
 FIRE_WORDS = re.compile(fold(r"حريق|حرائق|إخماد|أخمد|تخمد|النيران|نيران|اشتعال|احتراق|التهمت|تلتهم"
                              r"|\bfires?\b|\bblazes?\b|wildfires?|\bincendies?\b"))
+RECORD_TYPES = ["incident", "aggregate_report", "background", "not_a_fire"]
 RESPONDERS = ["civil_defense", "beirut_fire_brigade", "army", "red_cross", "municipality", "other"]
-ORIGINS = ["accidental", "deliberate", "conflict_related", "unknown"]
-
-
-# ---------------------------------------------------------------- the lists
-
-@lru_cache(maxsize=1)
-def taxonomy() -> dict:
-    return yaml.safe_load(TAXONOMY_PATH.read_text(encoding="utf-8"))
-
-
-def site_category() -> dict[str, str]:
-    """Sub-type id → its category id."""
-    out = {"not_established": "not_established"}
-    for category, v in taxonomy()["site_types"].items():
-        for sub in v.get("subtypes") or {}:
-            out[sub] = category
-    return out
-
-
-def hazard_ids() -> list[str]:
-    return list(taxonomy()["hazards"])
-
-
-def material_ids() -> list[str]:
-    return [m for m in taxonomy()["materials"] if m != "not_established"]
 
 
 # ---------------------------------------------------------------- what the model must return
@@ -71,12 +47,12 @@ def _nullable(kind: str) -> dict:
 
 
 def schema() -> dict:
-    sites = list(site_category())
+    sites, materials, hazards = tx.site_ids(), tx.material_ids(), tx.hazard_ids()
     item = {
         "type": "object",
         "additionalProperties": False,
         "properties": {
-            "record_type": {"enum": ["incident", "aggregate_report", "not_a_fire"]},
+            "record_type": {"enum": RECORD_TYPES},
             "is_lebanon": {"type": "boolean"},
             "summary": {"type": "string"},
             "occurred_on": _nullable("string"),
@@ -84,10 +60,11 @@ def schema() -> dict:
             "place_text": _nullable("string"),
             "site_primary": {"enum": sites},
             "site_others": {"type": "array", "items": {"enum": sites}},
-            "hazard_primary": {"enum": hazard_ids()},
-            "hazard_others": {"type": "array", "items": {"enum": hazard_ids()}},
-            "materials": {"type": "array", "items": {"enum": material_ids()}},
-            "origin": {"enum": ORIGINS},
+            "material_primary": {"enum": [*materials, tx.NOT_ESTABLISHED]},
+            "material_others": {"type": "array", "items": {"enum": materials}},
+            "hazard_primary": {"enum": hazards},
+            "hazard_others": {"type": "array", "items": {"enum": hazards}},
+            "origin": {"enum": tx.origin_ids()},
             "deaths": _nullable("integer"),
             "injuries": _nullable("integer"),
             "smoke_inhalation": _nullable("integer"),
@@ -119,23 +96,29 @@ def _entry(key: str, v: dict) -> str:
     return text
 
 
+def _groups(section: dict, child: str) -> list[str]:
+    """A two-level list: each group's label as a heading, then its ids."""
+    lines = []
+    for v in section.values():
+        if child not in v:
+            continue
+        head = v["label"] + (f" — {v['definition']}" if v.get("definition") else "")
+        lines.append(head + (f" Rule: {v['rule']}" if v.get("rule") else ""))
+        lines += [_entry(k, s) for k, s in v[child].items()]
+    return lines
+
+
 @lru_cache(maxsize=1)
 def system_prompt() -> str:
-    t = taxonomy()
-    sites = []
-    for category, v in t["site_types"].items():
-        if category == "not_established":
-            continue
-        head = f"{v['label']} — {v['definition']}" + (f" Rule: {v['rule']}" if v.get("rule") else "")
-        sites.append(head)
-        sites += [_entry(k, s) for k, s in v["subtypes"].items()]
-    sites.append("  not_established: the article does not say what kind of place burned.")
+    t = tx.lists()
+    sites = [*_groups(t["site_types"], "subtypes"), f"  {tx.NOT_ESTABLISHED}: {t['site_types'][tx.NOT_ESTABLISHED]['definition']}"]
+    materials = [*_groups(t["materials"], "items"), f"  {tx.NOT_ESTABLISHED}: the article does not say what burned."]
     hazards = [_entry(k, v) for k, v in t["hazards"].items()]
-    materials = [_entry(k, v) for k, v in t["materials"].items() if k != "not_established"]
+    origins = [f"   {k}: {v['definition']}" for k, v in t["origins"].items()]
     damages = [f"  {k}: {v}" for k, v in t["damages"].items()]
     template = PROMPT_PATH.read_text(encoding="utf-8")
-    return template.format(sites="\n".join(sites), hazards="\n".join(hazards), materials="\n".join(materials),
-                           damages="\n".join(damages), max_others=MAX_OTHERS, max_materials=MAX_MATERIALS)
+    return template.format(sites="\n".join(sites), materials="\n".join(materials), hazards="\n".join(hazards),
+                           origins="\n".join(origins), damages="\n".join(damages), max_others=MAX_OTHERS)
 
 
 def user_message(article: dict) -> str:
@@ -156,20 +139,13 @@ def is_candidate(article: dict) -> bool:
 
 
 def clean_item(item: dict) -> dict:
-    """Enforce what the schema cannot say: list lengths, no primary repeated, sane numbers."""
-    def others(primary: str, values: list[str], limit: int) -> list[str]:
-        seen = []
-        for v in values:
-            if v != primary and v != "not_established" and v not in seen:
+    """Enforce what the schema cannot say: list lengths, no main tag repeated, sane numbers."""
+    for kind in ("site", "material", "hazard"):
+        primary, seen = item[f"{kind}_primary"], []
+        for v in item[f"{kind}_others"]:
+            if v not in (primary, tx.NOT_ESTABLISHED) and v not in seen:
                 seen.append(v)
-        return seen[:limit]
-
-    item["site_others"] = others(item["site_primary"], item["site_others"], MAX_OTHERS)
-    item["hazard_others"] = others(item["hazard_primary"], item["hazard_others"], MAX_OTHERS)
-    item["materials"] = others("", item["materials"], MAX_MATERIALS)
-    categories = site_category()
-    item["site_category"] = categories[item["site_primary"]]
-    item["site_categories_other"] = others(item["site_category"], [categories[s] for s in item["site_others"]], MAX_OTHERS)
+        item[f"{kind}_others"] = seen[:MAX_OTHERS]
     for k in ("deaths", "injuries", "smoke_inhalation", "buildings_burned", "vehicles_burned", "displaced", "area_burned_m2"):
         if item[k] is not None and item[k] < 0:
             item[k] = None
@@ -210,11 +186,17 @@ def result_path(store: Store, article: dict) -> Path:
     return store.root / article["raw_ref"].replace("raw/", "extracted/", 1)
 
 
+def is_done(store: Store, article: dict) -> bool:
+    """Classified with the current instructions; older results are done again."""
+    path = result_path(store, article)
+    return path.exists() and json.loads(path.read_text(encoding="utf-8")).get("prompt_version") == PROMPT_VERSION
+
+
 def run(limit: int | None = None, force: bool = False, workers: int = 4, store: Store | None = None,
         client: anthropic.Anthropic | None = None) -> dict:
     store = store or Store()
     client = client or anthropic.Anthropic()
-    todo = [a for a in store.articles() if is_candidate(a) and (force or not result_path(store, a).exists())]
+    todo = [a for a in store.articles() if is_candidate(a) and (force or not is_done(store, a))]
     todo = todo[:limit] if limit else todo
     totals = {"articles": len(todo), "ok": 0, "not_ok": 0, "items": 0, "incidents_in_lebanon": 0,
               "input_tokens": 0, "output_tokens": 0}

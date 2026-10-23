@@ -6,8 +6,12 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "At most this many articles (empty = every one not yet classified)"
+        description: "At most this many articles (empty = every one not yet classified with the current instructions)"
         default: "100"
+      force:
+        description: "Classify again the articles already classified with the current instructions"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -30,7 +34,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           LIMIT: ${{ inputs.limit }}
-        run: uv run crawler extract ${LIMIT:+--limit "$LIMIT"}
+          FORCE: ${{ inputs.force && 'yes' || '' }}
+        run: uv run crawler extract ${LIMIT:+--limit "$LIMIT"} ${FORCE:+--force}
       - name: Save the classifications to the private store
         working-directory: private
         run: |

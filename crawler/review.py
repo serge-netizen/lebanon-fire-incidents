@@ -1,93 +1,101 @@
 """Review (BRIEF §4.7). For now, the owner's review workbook — the task 4 feedback loop: one row
-per item Claude extracted, in plain labels, with two columns for the owner's verdict and
-correction. Private: it quotes the articles, so it is written to the private store, never to this
-repo. Task 5 adds the review sheet and reads decisions back.
+per fire (articles about the same fire share a row), what the articles report kept apart from
+what is deduced, and two columns for the owner's verdict and correction. Private: it quotes the
+articles, so it is written to the private store, never to this repo. Task 5 adds the review
+sheet and reads decisions back.
 """
 
 from __future__ import annotations
 
-import json
+from collections import Counter
 from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from crawler.extract import taxonomy
-from crawler.geocode import resolve
+from crawler import taxonomy as tx
+from crawler.dedupe import DAMAGES, Incident, incidents, load
+from crawler.derive import WAR, deduced
+from crawler.geocode import Resolution
 from crawler.store import Store
 
 HEADER_FILL = PatternFill("solid", fgColor="2F3B4C")
 REVIEW_FILL = PatternFill("solid", fgColor="FFF4D6")
 WRAP = Alignment(wrap_text=True, vertical="top")
+LINK = Font(color="1F5FAF", underline="single")
+LOW_CONFIDENCE = 0.7  # below this, the brief sends a record to a second pass (BRIEF §4.4)
 
-COLUMNS = [  # (title, width)
-    ("#", 5), ("Published", 11), ("Outlet", 12), ("Headline", 46), ("Summary (Claude)", 46),
-    ("Fire date", 11), ("Place as written", 26), ("Location found", 30), ("Location precision", 11),
-    ("Site category", 22), ("Site (primary)", 26), ("Site (others)", 26), ("Hazard (primary)", 24),
-    ("Hazard (others)", 24), ("Materials reported", 26), ("Fire class of reported materials", 12),
-    ("Typical materials for this site — NOT reported", 30), ("Origin", 14), ("Deaths", 8),
-    ("Injuries", 8), ("Smoke inhalation", 9), ("Buildings burned", 9), ("Vehicles burned", 9),
-    ("Area burned (m²)", 10), ("Displaced", 9), ("Responders", 18), ("Confidence", 10),
-    ("Evidence (quotes)", 60), ("YOUR VERDICT (OK / wrong)", 14), ("YOUR CORRECTION", 40),
+FIRE_COLUMNS = [  # (title, width)
+    ("#", 5), ("Fire date", 12), ("Articles", 14), ("Headline (main article)", 44), ("Summary (Claude)", 44),
+    ("Place as written", 24), ("Location found", 26), ("Site — main", 28), ("Site — others", 26),
+    ("What burned — reported (main first)", 28), ("What burned — deduced, NOT reported", 28),
+    ("Hazard — reported (main first)", 24), ("Hazard — deduced, NOT reported", 24), ("Origin", 16),
+    ("Damage (reported)", 22), ("Responders", 16), ("Checks", 32), ("Confidence", 10),
+    ("YOUR VERDICT (OK / wrong)", 14), ("YOUR CORRECTION", 40),
 ]
+ARTICLE_COLUMNS = [("Fire", 6), ("Outlet", 11), ("Published", 11), ("Headline", 50), ("Summary (Claude)", 50),
+                   ("Evidence: Claude's quotes from the article", 70)]
+SET_ASIDE_COLUMNS = [("#", 5), ("Published", 11), ("Outlet", 11), ("Headline", 60), ("Set aside as", 14),
+                     ("Summary (Claude)", 60), ("Confidence", 10)]
+SET_ASIDE_AS = {"aggregate_report": "totals", "background": "background", "not_a_fire": "not a fire", "abroad": "abroad"}
+DAMAGE_TEXT = {"deaths": "{} dead", "injuries": "{} injured", "smoke_inhalation": "{} treated for smoke",
+               "buildings_burned": "{} buildings", "vehicles_burned": "{} vehicles",
+               "area_burned_m2": "{:,.0f} m² burned", "displaced": "{} displaced"}
 
 
-def _labels() -> tuple[dict, dict, dict, dict]:
-    t = taxonomy()
-    sites, categories = {"not_established": "Not established"}, {"not_established": "Not established"}
-    for cat, v in t["site_types"].items():
-        categories[cat] = v["label"]
-        for sub, s in (v.get("subtypes") or {}).items():
-            sites[sub] = s["label"]
-    hazards = {k: v["label"] for k, v in t["hazards"].items()}
-    materials = {k: v for k, v in t["materials"].items()}
-    return sites, categories, hazards, materials
+# ---------------------------------------------------------------- cell text
+
+def _site(code: str) -> str:
+    labels = tx.labels()
+    if code == tx.NOT_ESTABLISHED:
+        return "not established"
+    return f"{labels['site'][code]} ({labels['category'][tx.site_category()[code]]})"
 
 
-def _location(place_text: str | None) -> tuple[str, str]:
-    if not place_text:
-        return "", "unknown"
-    r = resolve(place_text)
+def _reported(record: dict, kind: str, label_kind: str) -> str:
+    codes = [c for c in (record[f"{kind}_primary"], *record[f"{kind}_others"]) if c != tx.NOT_ESTABLISHED]
+    return "; ".join(tx.labels()[label_kind][c] for c in codes) or "not established"
+
+
+def _location(r: Resolution) -> str:
     parts = [u["name_en"] for u in (r.admin3, r.admin2, r.admin1) if u]
-    flags = [f for f, on in (("ambiguous", r.ambiguous), ("conflict", r.conflict)) if on]
-    return (" · ".join(parts) or "not resolved") + (f" ({', '.join(flags)})" if flags else ""), r.precision
+    return f"{' · '.join(parts)} ({r.precision})" if parts else "not found"
 
 
-def rows(store: Store) -> tuple[list[list], list[list], list[list]]:
-    sites, categories, hazards, materials = _labels()
-    typical = taxonomy()["typical_materials"]
-    articles = {a["raw_ref"]: a for a in store.articles()}
-    fires, other, failed = [], [], []
-    for path in sorted((store.root / "extracted").glob("*/*/*.json")):
-        result = json.loads(path.read_text(encoding="utf-8"))
-        a = articles.get(result["raw_ref"], {})
-        base = [(a.get("published_at") or "")[:10], result["outlet"], (a.get("headline", ""), result["url"])]
-        if result["status"] != "ok":
-            failed.append(base + [result["status"]])
-            continue
-        for i in result["items"]:
-            if i["record_type"] != "incident" or not i["is_lebanon"]:
-                kind = "abroad" if not i["is_lebanon"] and i["record_type"] == "incident" else i["record_type"]
-                other.append(base + [kind, i["summary"], i["confidence"]])
-                continue
-            location, precision = _location(i["place_text"])
-            reported = [materials[m] for m in i["materials"]]
-            fires.append(base + [
-                i["summary"], i["occurred_on"] or "", i["place_text"] or "", location, precision,
-                categories[i["site_category"]], sites[i["site_primary"]], "; ".join(sites[s] for s in i["site_others"]),
-                hazards[i["hazard_primary"]], "; ".join(hazards[h] for h in i["hazard_others"]),
-                "; ".join(m["label"] for m in reported), " ".join(sorted({str(m["fire_class"]) for m in reported})),
-                "; ".join(materials[m]["label"] for m in typical.get(i["site_category"], [])),
-                i["origin"], i["deaths"], i["injuries"], i["smoke_inhalation"], i["buildings_burned"],
-                i["vehicles_burned"], i["area_burned_m2"], i["displaced"], ", ".join(i["responders"]),
-                round(i["confidence"], 2), "\n".join(f"{e['field']}: «{e['quote']}»" for e in i["evidence"]), "", "",
-            ])
-    key = lambda r: r[0]
-    return sorted(fires, key=key, reverse=True), sorted(other, key=key, reverse=True), failed
+def _origin(record: dict, implied: str | None) -> str:
+    labels = tx.labels()["origin"]
+    if record["origin"] != "unknown" or not implied:
+        return labels[record["origin"]]
+    return f"{labels[implied]} (deduced from the hazard)"
 
 
-def _sheet(wb: Workbook, title: str, header: list[tuple[str, int]], data: list[list], review_cols: int = 0) -> None:
+def _damage(record: dict) -> str:
+    return "; ".join(DAMAGE_TEXT[k].format(record[k]) for k in DAMAGES if record[k] is not None) or "none stated"
+
+
+def _outlets(i: Incident) -> str:
+    return ", ".join(f"{o} ×{n}" if n > 1 else o for o, n in Counter(r.outlet for r in i.reports).items())
+
+
+def fire_row(n: int, i: Incident) -> list:
+    rec, d, main = i.record, deduced(i.record), i.reports[0]
+    labels = tx.labels()
+    checks = [*i.flags] + ([f"confidence below {LOW_CONFIDENCE}"] if rec["confidence"] < LOW_CONFIDENCE else [])
+    return [
+        n, i.date.isoformat() + (" (publication date)" if i.date_deduced else ""), _outlets(i),
+        (main.headline, main.url), rec["summary"], rec["place_text"] or "", _location(main.place),
+        _site(rec["site_primary"]), "; ".join(_site(s) for s in rec["site_others"]),
+        _reported(rec, "material", "material"), "; ".join(labels["material"][m] for m in d["materials"]),
+        _reported(rec, "hazard", "hazard"), "; ".join(labels["hazard"][h] for h in d["hazards"]),
+        _origin(rec, d["origin"]), _damage(rec), ", ".join(rec["responders"]), "\n".join(checks),
+        round(rec["confidence"], 2), "", "",
+    ]
+
+
+# ---------------------------------------------------------------- the workbook
+
+def _sheet(wb: Workbook, title: str, header: list[tuple[str, int]], rows: list[list], review_cols: int = 0) -> None:
     ws = wb.create_sheet(title)
     ws.sheet_view.showGridLines = False
     ws.append([h for h, _ in header])
@@ -95,52 +103,87 @@ def _sheet(wb: Workbook, title: str, header: list[tuple[str, int]], data: list[l
         cell = ws.cell(row=1, column=col)
         cell.font, cell.fill, cell.alignment = Font(bold=True, color="FFFFFF"), HEADER_FILL, WRAP
         ws.column_dimensions[get_column_letter(col)].width = width
-    for n, row in enumerate(data, start=1):
-        headline, url = row[2]
-        ws.append([n, row[0], row[1], headline, *row[3:]])
-        link = ws.cell(row=n + 1, column=4)
-        link.hyperlink, link.font = url, Font(color="1F5FAF", underline="single")
-        for col in range(1, len(header) + 1):
-            ws.cell(row=n + 1, column=col).alignment = WRAP
-        for col in range(len(header) - review_cols + 1, len(header) + 1):
-            ws.cell(row=n + 1, column=col).fill = REVIEW_FILL
+    for r, row in enumerate(rows, start=2):
+        ws.append([v[0] if isinstance(v, tuple) else v for v in row])
+        for col, v in enumerate(row, start=1):
+            cell = ws.cell(row=r, column=col)
+            cell.alignment = WRAP
+            if isinstance(v, tuple):  # (text, url)
+                cell.hyperlink, cell.font = v[1], LINK
+            if col > len(header) - review_cols:
+                cell.fill = REVIEW_FILL
     ws.freeze_panes = "E2"
     ws.auto_filter.ref = ws.dimensions
 
 
+def _evidence(item: dict) -> str:
+    return "\n".join(f"{e['field']}: «{e['quote']}»" for e in item["evidence"])
+
+
 def write(path: Path, store: Store | None = None) -> dict:
-    store = store or Store()
-    fires, other, failed = rows(store)
+    batch = load(store or Store())
+    fires = incidents(batch.reports)
+    in_scope = [i for i in fires if i.scope != WAR]
+    war = [i for i in fires if i.scope == WAR]
+    articles = []
+    for prefix, group in (("F", in_scope), ("W", war)):
+        for n, i in enumerate(group, start=1):
+            articles += [[f"{prefix}{n}", r.outlet, r.published.isoformat(), (r.headline, r.url), r.item["summary"],
+                          _evidence(r.item)] for r in i.reports]
+    set_aside = sorted(([(x["article"].get("published_at") or "")[:10], x["article"]["outlet"],
+                         (x["article"]["headline"], x["article"]["url"]), SET_ASIDE_AS.get(x["scope"], x["scope"]),
+                         x["item"]["summary"], round(x["item"]["confidence"], 2)] for x in batch.set_aside),
+                       key=lambda row: row[0], reverse=True)
+    failed = [[(a["article"].get("published_at") or "")[:10], a["article"]["outlet"],
+               (a["article"]["headline"], a["article"]["url"]), a["status"]] for a in batch.failed]
+
     wb = Workbook()
     readme = wb.active
     readme.title = "Read me"
     readme.sheet_view.showGridLines = False
-    counts = (f"Fires in Lebanon: {len(fires)} items. Other items (not a fire, abroad, daily totals): "
-              f"{len(other)}. Not classified (refused or failed): {len(failed)}.")
-    how = ("How to review: on the sheet 'Fires in Lebanon', write OK or wrong in the yellow 'YOUR VERDICT' "
-           "column, and what it should be in 'YOUR CORRECTION'. The sheet 'Other items' shows what Claude "
-           "set aside — say if a real Lebanese fire is hiding there.")
-    words = ("Site = what kind of place burned. Location = where on the map. Hazard = what started or fed "
-             "the fire. Materials = what was burning, only when the article says so.")
-    typical_note = ("'Typical materials for this site' is NOT a finding: it is what such a place usually "
-                    "contains, shown so you can judge whether to use it. It is never counted as reported.")
-    location_note = ("Location found comes from the official place table (OCHA/CDR); 'ambiguous' means two "
-                     "places share the name, 'conflict' means the article names places that do not nest.")
-    classes = ("Fire classes follow NFPA 10: A ordinary solids, B flammable liquids and gases, C live "
-               "electrical, D combustible metals, K cooking oil.")
-    lines = [("Fire incidents in Lebanon — first classification, for review", True), ("", False),
-             (counts, False), ("", False), (how, False), ("", False), (words, False),
-             (typical_note, False), (location_note, False), (classes, False)]
+    merged = len(batch.reports) - len(fires)
+    lines = [
+        ("Fire incidents in Lebanon — second classification, for review", True),
+        ("", False),
+        ((f"{len(batch.reports)} reports of fires in Lebanon became {len(fires)} fires once articles about the same fire "
+         f"were merged ({merged} merged). {len(in_scope)} are on 'Fires in Lebanon'; {len(war)} war-related fires are "
+         f"logged on their own sheet and will not be shown. Set aside: {len(set_aside)} (not a fire, abroad, background, "
+         f"totals). Not classified: {len(failed)}."), False),
+        ("", False),
+        (("How to review: one row per fire. Write OK or wrong in the yellow 'YOUR VERDICT' column and what it should be "
+         "in 'YOUR CORRECTION'. The sheet 'Articles' lists every article behind each fire (F3 = row 3 of 'Fires in "
+         "Lebanon', W2 = row 2 of 'War-related') with the quotes Claude based its answer on. 'Set aside' shows what "
+         "Claude did not count — say if a real Lebanese fire is hiding there."), False),
+        ("", False),
+        (("Each row answers separate questions. WHERE: the place as written, and the place found in the official table "
+         "(OCHA/CDR). SITE: the facility or place that witnessed the fire (a school, a house, a road, a forest). WHAT "
+         "BURNED: the objects and materials. HAZARD: what started or fed the fire. ORIGIN: accident, deliberate, war or "
+         "unknown. DAMAGE: as reported."), False),
+        (("REPORTED means Claude read it in the article. DEDUCED means the computer looked it up in a fixed table — what "
+         "such a site usually contains, what usually starts fires there, the origin a hazard implies, the publication "
+         "date when the article gives no fire date. Deduced values are labelled and never counted as reported."), False),
+        (("War-related fires (strikes, shelling, munitions, fires set by an army) are kept but not shown. Claude marks "
+         "them; a second check puts 'war words in the article' in 'Checks' for any other fire whose article uses them."),
+         False),
+        (("Same fire: two articles are merged when their places match (same village, or a village inside the same "
+         "district), their dates are at most two days apart, and their sites agree. 'Articles' says how many and from "
+         "which outlets."), False),
+    ]
+    if batch.stale:
+        lines.append((f"{batch.stale} classifications made with older instructions are not shown.", False))
     for text, bold in lines:
         readme.append([text])
-        readme.cell(row=readme.max_row, column=1).font = Font(bold=bold, size=14 if bold else 11)
-        readme.cell(row=readme.max_row, column=1).alignment = Alignment(wrap_text=True, vertical="top")
+        cell = readme.cell(row=readme.max_row, column=1)
+        cell.font, cell.alignment = Font(bold=bold, size=14 if bold else 11), WRAP
     readme.column_dimensions["A"].width = 120
-    _sheet(wb, "Fires in Lebanon", COLUMNS, fires, review_cols=2)
-    _sheet(wb, "Other items", [("#", 5), ("Published", 11), ("Outlet", 12), ("Headline", 60), ("Set aside as", 16),
-                               ("Summary (Claude)", 60), ("Confidence", 10)], other)
+    _sheet(wb, "Fires in Lebanon", FIRE_COLUMNS, [fire_row(n, i) for n, i in enumerate(in_scope, start=1)], review_cols=2)
+    _sheet(wb, "War-related (not shown)", FIRE_COLUMNS, [fire_row(n, i) for n, i in enumerate(war, start=1)], review_cols=2)
+    _sheet(wb, "Articles", ARTICLE_COLUMNS, articles)
+    _sheet(wb, "Set aside", SET_ASIDE_COLUMNS, [[n, *row] for n, row in enumerate(set_aside, start=1)])
     if failed:
-        _sheet(wb, "Not classified", [("#", 5), ("Published", 11), ("Outlet", 12), ("Headline", 60), ("Why", 30)], failed)
+        _sheet(wb, "Not classified", [("#", 5), ("Published", 11), ("Outlet", 11), ("Headline", 60), ("Why", 30)],
+               [[n, *row] for n, row in enumerate(failed, start=1)])
     path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(path)
-    return {"fires": len(fires), "other": len(other), "failed": len(failed), "path": str(path)}
+    return {"reports": len(batch.reports), "fires": len(in_scope), "war_related": len(war), "merged": merged,
+            "set_aside": len(set_aside), "failed": len(failed), "stale": batch.stale, "path": str(path)}

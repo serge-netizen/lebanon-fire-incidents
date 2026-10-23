@@ -38,6 +38,7 @@ def _patterns() -> dict:
         "match": compile_(raw["match"]),
         "borderline": compile_(raw["borderline"]),
         "exclude": compile_(raw["exclude"]),
+        "war": compile_(raw["war"]),
         "census_fire": re.compile(fold(raw["census"]["fire"])),
         "census_tally": re.compile(fold(raw["census"]["tally"])),
     }
@@ -49,6 +50,11 @@ def check(headline: str, lead: str = "") -> Verdict:
     matched = bool(p["match"].search(text))
     borderline = not matched and bool(p["borderline"].search(text))
     return Verdict(passes=matched or borderline, borderline=borderline, excluded_hint=bool(p["exclude"].search(text)))
+
+
+def war_words(text: str) -> list[str]:
+    """The war words (filter_patterns.yaml) found anywhere in a text, folded, for the scope check."""
+    return sorted(set(_patterns()["war"].findall(fold(text))))
 
 
 def census_kind(headline: str) -> str | None:
