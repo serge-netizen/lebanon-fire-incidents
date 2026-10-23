@@ -177,6 +177,12 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   its place was given as "the garbage mountain" without the town, and a UNIFIL vehicle was left out
   of what burned. Instructions v4 take the town from a name ("بلدية صيدا"), add "other vehicle,
   type not stated", and a count of burned vehicles now implies a vehicle (deduced).
+- **Third run, instructions v4 (2026-10-23):** 79 articles, all answered, **$0.124**; 21 reports
+  → **13 fires** (9 in scope, 4 war-related). The six Saida dump articles are one fire; the UNIFIL
+  vehicle and the Tebnine battery are now in what burned. Debatable, for the owner: the Nabatieh
+  residents' appeal is one low-confidence "fire" (0.35, flagged); Borj Rahhal's burned land has no
+  site type, the school is the other site. Workbook: `private/review/2026-10-23-second-batch.xlsx`,
+  with a "Lists" sheet so the owner can correct or extend every entry.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
   have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also
@@ -240,7 +246,8 @@ workflow.
 > $0.0993, i.e. $0.0013 an article** (about 9,000 tokens in — mostly the instructions — and 740
 > out). At about 80 fire articles a month that is **about 10 cents a month**; twelve months of
 > history, _assuming the same density_, **about $1–2**. Caching the instructions and the Batch API
-> would each cut it further; not worth the complexity yet.
+> would each cut it further; not worth the complexity yet. **Lists v0.3 (2026-10-23):** the longer
+> lists bring it to about 11,800 tokens in and 770 out, **$0.0016 an article** (79 for $0.124).
 
 Claude prices from the price list used on 2026-10-10: Haiku 4.5 at $1 / $5 per million input / output
 tokens, Sonnet 5 at $2 / $10; the Batch API halves both.
