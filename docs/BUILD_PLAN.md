@@ -134,6 +134,16 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   free first check sends only fire stories (fire words in the headline or opening): 78 of the
   first 289 articles. Runs on GitHub (`extract.yml`), where the key is; results go to the private
   store. Second pass (Claude Sonnet 5.5) not built yet.
+- **First run (2026-10-23):** 78 articles, none refused or failed, 79 items, **22 fires in
+  Lebanon**; the rest set aside as abroad, not a fire, or daily totals. My own read of the 22
+  before the owner's review: three wrong (a general appeal against arson and a regrowth story
+  taken as incidents; a UNIFIL vehicle fire given "electrical installation" and "accidental"
+  where the article asks "explosion or fault?"), one debatable (Tebnine: open burning or the
+  battery as primary hazard), and one caused by the list itself ("سنتر", a commercial building,
+  given as a mall cue). Review workbook: `private/review/2026-10-23-first-batch.xlsx`.
+- **Known issue:** Lebanon24 serves one article under two addresses (sitemap and feed); across
+  runs the same story can be stored twice. Merged by dedupe in task 5; the fetched-state key
+  should be the article number.
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
 - Extraction: Haiku 5.5 with structured output (`output_config.format`), one request per
   article; output is a **list** of items, each typed `incident` / `aggregate_report` / `not_a_fire`.
@@ -179,9 +189,11 @@ workflow.
 
 > **Superseded 2026-10-23.** Everything below this note was priced on Claude Haiku 4.5. The brief's
 > model, Claude Haiku 5.5, costs $0.10 / $0.50 per million input / output tokens (prompts up to
-> 100K tokens) — a tenth of Haiku 4.5. _Estimate, to be replaced by the first run's measured cost:_
-> about **$0.001 an article**, so **cents a month** at today's volume (about 80 fire articles a
-> month pass the free first check) and **about $1–2 for twelve months of history**.
+> 100K tokens) — a tenth of Haiku 4.5. **Measured on the first run (2026-10-23): 78 articles for
+> $0.0993, i.e. $0.0013 an article** (about 9,000 tokens in — mostly the instructions — and 740
+> out). At about 80 fire articles a month that is **about 10 cents a month**; twelve months of
+> history, _assuming the same density_, **about $1–2**. Caching the instructions and the Batch API
+> would each cut it further; not worth the complexity yet.
 
 Claude prices from the price list used on 2026-10-10: Haiku 4.5 at $1 / $5 per million input / output
 tokens, Sonnet 5 at $2 / $10; the Batch API halves both.
