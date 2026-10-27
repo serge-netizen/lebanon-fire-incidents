@@ -5,7 +5,8 @@ not make. **Anything marked _chosen_ is a judgement, not a measurement**; it say
 be changed.
 
 Last updated: 2026-10-27 (owner's answers: history before the site; review by e-mail; drafts before
-anything is published; classification now runs with every crawl).
+anything is published. Built the same day: classification with every crawl, outlet readers, the
+12-month history collector, the review e-mail).
 
 ---
 
@@ -370,11 +371,13 @@ time: **~$20–70** (_assumes today's density in past years; unknown_).
 | 3 | ~~Anthropic API key~~ **done 2026-10-22**: `ANTHROPIC_API_KEY` secret in place (the spend cap is set in Anthropic's console, not visible from here) | task 4 | done |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
 | 5 | ~~Google service account~~ **not needed (2026-10-27)**: review is by e-mail. Instead: the review address, and an account that sends the e-mails, as three secrets (`MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_TO`) | task 5 | 15 min |
+| 5b | How the reviewer answers each e-mail. Proposed: a reply "OK" or the correction, read from the sending account's inbox with the same app password | task 5 | a decision |
 | 6 | ~~The reviewer~~ **decided 2026-10-27**: whoever reads the review address | task 5 | done |
 | 7 | The manual Civil Defense Facebook log, kept for the same 14 days as the pilot run | task 5 | daily, minutes |
-| 8 | Cloudflare account and the repo connected (root `site`, build `npm run build`, output `dist`) | task 7 | 10 min |
+| 8 | Cloudflare account and the repo connected (root `site`, build `npm run build`, output `dist`) — only once the owner has approved the site's private draft (2026-10-27) | task 7 | 10 min |
 | 9 | Disclosure/brand and the domain name | launch | a decision |
 | 10 | A native speaker to review the Arabic and French interface text, and the `proposed` aliases | launch | ~1 h |
+| 11 | GitHub account → Settings → Emails: keep the e-mail address private, so GitHub's own merges never write it into a commit | now | 1 min |
 
 ## 7. Worth knowing
 
