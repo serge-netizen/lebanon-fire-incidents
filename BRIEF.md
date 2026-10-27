@@ -12,6 +12,7 @@ This is the project brief. It is the complete context needed to build the first 
 > 7. **Civil Defense does publish a breakdown** (§1, §7; found 2026-10-22) — its daily bulletin lists fires put out by type (electrical, homes, grass, rubbish, vehicles…). §7's `daily_tallies` series is therefore a daily fire count by type, not just a mission count. See `docs/BUILD_PLAN.md` §9.
 > 8. **History: the last 12 months** (§4 backfill, §10 task 6; owner's decision 2026-10-22) — instead of 24 months first.
 > 9. **War-related fires, and how a fire is classified** (§6; owner's review 2026-10-23) — fires caused by armed hostilities (strikes, shelling, munitions, fires set by an army, military detonations) are **logged but not displayed**, where §6 had them shown separately. Each fire answers separate questions — the site (the facility or place that witnessed it), what burned, the hazard, the origin — and every value is either **reported** (read in the article) or **deduced** (looked up in a fixed table), never mixed. The lists are in `crawler/taxonomy.yaml`; they replace §6's `property_class`, `occupancy_detail` and `cause_reported` when the published schema is fixed (task 5).
+> 10. **Review by e-mail; drafts before publishing** (§4.7, §10 tasks 5 and 7, §12; owner's decision 2026-10-27) — each new fire is e-mailed to one address the owner designates, instead of the Google Sheet. The site is first drafted as a private page (an artifact or one self-contained HTML file) and published, with any hosting or domain cost, only once the owner approves the draft.
 
 ---
 

@@ -4,7 +4,9 @@ name: crawl
 # Minute 17, not 0: GitHub delays and drops scheduled runs most at the top of the hour
 # (measured 2026-10-10 → 22: runs started 3–7 h late; see docs/BUILD_PLAN.md §8).
 # This job reads the sources GitHub's servers can reach; the owner's Mac reads the other four
-# (scripts/home-crawl.sh). Both write to the private store; only counts appear in this log.
+# (scripts/home-crawl.sh) and starts this job each time it has saved something new, so what the
+# Mac reads is classified, and its Civil Defense bulletins published, within minutes.
+# Both write to the private store; only counts and cost appear in this log.
 on:
   schedule:
     - cron: "17 3,10,17 * * *"
@@ -23,6 +25,7 @@ jobs:
     timeout-minutes: 60
     env:
       HAS_PRIVATE: ${{ secrets.PRIVATE_DATA_TOKEN != '' }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
@@ -59,6 +62,24 @@ jobs:
           git add data/official/daily_tallies.csv
           if ! git diff --cached --quiet; then
             git commit -q -m "data: Civil Defense daily bulletins"
+            git pull -q --rebase && git push -q
+          fi
+      # Claude classifies the fire articles not yet classified with the current instructions
+      # (task 4). The cap is chosen: 60 articles cost about 10 cents; a normal run has a handful.
+      - name: Classify the new fire articles
+        if: ${{ env.HAS_PRIVATE == 'true' && env.HAS_KEY == 'true' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: uv run crawler extract --limit 60
+      - name: Save the classifications to the private store
+        if: ${{ env.HAS_PRIVATE == 'true' && env.HAS_KEY == 'true' }}
+        working-directory: private
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extracted
+          if ! git diff --cached --quiet; then
+            git commit -q -m "extract $(date -u +%Y-%m-%dT%H:%MZ)"
             git pull -q --rebase && git push -q
           fi
       - name: Dry run (no private store available)

@@ -4,7 +4,8 @@ How `BRIEF.md` gets built, task by task, and every choice made along the way tha
 not make. **Anything marked _chosen_ is a judgement, not a measurement**; it says why, and it can
 be changed.
 
-Last updated: 2026-10-23 (task 4: lists v0.2 after the owner's review; extraction built on Claude Haiku 5.5).
+Last updated: 2026-10-27 (owner's answers: history before the site; review by e-mail; drafts before
+anything is published; classification now runs with every crawl).
 
 ---
 
@@ -203,6 +204,16 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   fires** (11 in scope, 6 war-related). Workbook: `private/review/2026-10-27-third-batch.xlsx`.
   Known gap: a place the map does not know ("منطقة الحوش") does not merge with a report that
   names it inside a longer place (two war-related reports of one fire) — next dedupe rule.
+- **The owner's answers (2026-10-27).** The third workbook is right apart from what he had already
+  pointed out (the one left: a fire listed twice, the al-Hawsh gap above). Order of work: the
+  12-month history first, then the published data, then the site. Review by e-mail (task 5). The
+  Civil Defense archive: he continues through his own contacts.
+- **Classification runs on its own (2026-10-27).** It is a step of every crawl (`crawl.yml`, at
+  most 60 articles a run, _chosen_: about 10 cents), and the owner's Mac starts that crawl as soon
+  as it has saved new articles (`scripts/home-crawl.sh`, with his own GitHub login on the Mac). So
+  NNA's Civil Defense bulletins are published minutes after the Mac reads them, not at GitHub's
+  next scheduled run, which starts 3–7 hours late (§8). A call to Claude that failed (API or
+  network error) is tried again on the next run; a refusal is kept for review.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
   have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also
@@ -233,9 +244,10 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - The published schema (`crawler/schema/incident.schema.json`) still has §6's `property_class` and
   `cause_reported`: to be aligned with the lists (site, what burned, hazard; reported and deduced
   apart) before anything is published.
-- Review sheet: **DECIDED 2026-10-10 — a Google Sheet**, as in the brief, on the owner's Google
-  account. A service account (a robot Google user) reads and writes it; its key is an Actions
-  secret created by the owner. Set up at the start of task 5.
+- **Review: by e-mail (owner, 2026-10-27; BRIEF amendment 10).** Each new fire is e-mailed to one
+  address the owner will give. This replaces the Google Sheet decided on 2026-10-10, and with it
+  the Google service account. How the answer comes back is proposed, not decided: the reviewer
+  replies "OK" or says what is wrong.
 - Publish: parquet + csv + geojson + aggregate JSON files; `DATA_DICTIONARY.md` generated from the
   schema so the two cannot drift.
 - Done test: a 14-day run, reviewed, with a recall figure against the owner's manual log.
@@ -246,6 +258,8 @@ run that times out picks up where it stopped. Sanity plot of monthly counts.
 **Scope (owner, 2026-10-22): the last 12 months.** The 10-year history is parked.
 
 ### Task 7 — Site v1
+**Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML
+file, reviewed by the owner, before anything is published or paid for (hosting, domain).
 Load the `frontend-design` and `dataviz` skills first. Observable Plot charts from the aggregate
 JSON; MapLibre + OpenFreeMap; DuckDB-WASM over `incidents.parquet` for the explorer. Every chart:
 table toggle, PNG, CSV, source line, URL state. Lighthouse ≥ 90.
@@ -312,8 +326,8 @@ time: **~$20–70** (_assumes today's density in past years; unknown_).
 | 2 | ~~8 or 9 governorates~~ **decided 2026-10-22: nine** (Keserwan-Jbeil separate) | task 5 | done |
 | 3 | ~~Anthropic API key~~ **done 2026-10-22**: `ANTHROPIC_API_KEY` secret in place (the spend cap is set in Anthropic's console, not visible from here) | task 4 | done |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
-| 5 | Google service account + its key as a secret; the review Sheet shared with it | task 5 | 15 min |
-| 6 | The reviewer: who, and roughly how much time a day | task 5 | a decision |
+| 5 | ~~Google service account~~ **not needed (2026-10-27)**: review is by e-mail. Instead: the review address, and an account that sends the e-mails | task 5 | 15 min |
+| 6 | ~~The reviewer~~ **decided 2026-10-27**: whoever reads the review address | task 5 | done |
 | 7 | The manual Civil Defense Facebook log, kept for the same 14 days as the pilot run | task 5 | daily, minutes |
 | 8 | Cloudflare account and the repo connected (root `site`, build `npm run build`, output `dist`) | task 7 | 10 min |
 | 9 | Disclosure/brand and the domain name | launch | a decision |

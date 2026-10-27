@@ -95,3 +95,7 @@ def test_run_saves_results_and_skips_them_next_time(tmp_path):
     saved = tmp_path / "extracted" / "nna" / "2026-09" / "abc.json"
     saved.write_text(json.dumps(json.loads(saved.read_text()) | {"prompt_version": "0"}), encoding="utf-8")
     assert extract.run(store=store, client=client)["articles"] == 1  # older instructions: classified again
+    saved.write_text(json.dumps(json.loads(saved.read_text()) | {"status": "network error"}), encoding="utf-8")
+    assert extract.run(store=store, client=client)["articles"] == 1  # a failed call is tried again
+    saved.write_text(json.dumps(json.loads(saved.read_text()) | {"status": "refusal"}), encoding="utf-8")
+    assert extract.run(store=store, client=client)["articles"] == 0  # a refusal is an answer: kept for review

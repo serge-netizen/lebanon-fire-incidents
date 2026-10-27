@@ -1,6 +1,7 @@
 name: extract
 # Task 4: Claude classifies the fire articles in the private store (crawler/extract.py).
-# Manual for now; joins the crawl once the owner has reviewed the first results.
+# The crawl classifies new articles itself (crawl.yml); run this by hand for a large batch
+# (the 12-month history) or to classify everything again (force).
 # Counts and cost appear in this public log; the classifications go to the private store.
 on:
   workflow_dispatch:

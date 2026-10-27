@@ -31,6 +31,7 @@ PROMPT_VERSION = "5"  # bump whenever the instructions or the lists change; stor
 EFFORT = "medium"     # Haiku 5.5's default; chosen, to be tuned on the owner's corrections
 MAX_OTHERS = 4        # owner, 2026-10-22: one main tag and up to four more (site, burned, hazard)
 MAX_TEXT_CHARS = 20_000
+TRANSIENT = ("API error", "network error")  # statuses tried again on the next run (extract_one)
 # $ per million tokens (input, output) for prompts up to 100K tokens; from the claude-api
 # reference cached 2026-10-06 — re-check before quoting a budget.
 PRICE = {"claude-haiku-5-5": (0.10, 0.50)}
@@ -190,9 +191,13 @@ def result_path(store: Store, article: dict) -> Path:
 
 
 def is_done(store: Store, article: dict) -> bool:
-    """Classified with the current instructions; older results are done again."""
+    """Classified with the current instructions. Older results are done again, and so are API and
+    network failures (a refusal or a cut-off answer is kept: trying again would not change it)."""
     path = result_path(store, article)
-    return path.exists() and json.loads(path.read_text(encoding="utf-8")).get("prompt_version") == PROMPT_VERSION
+    if not path.exists():
+        return False
+    result = json.loads(path.read_text(encoding="utf-8"))
+    return result.get("prompt_version") == PROMPT_VERSION and not result["status"].startswith(TRANSIENT)
 
 
 def run(limit: int | None = None, force: bool = False, workers: int = 4, store: Store | None = None,
