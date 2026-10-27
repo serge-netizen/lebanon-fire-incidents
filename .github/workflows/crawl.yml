@@ -75,13 +75,22 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: uv run crawler extract --limit 60
-      - name: Save the classifications to the private store
-        if: ${{ env.HAS_PRIVATE == 'true' && env.HAS_KEY == 'true' }}
+      # One e-mail per new fire to the review address (crawler/notify.py). Nothing is sent until
+      # the owner has created the three MAIL_* secrets; fire numbers are kept either way.
+      - name: E-mail the new fires to the review address
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: uv run crawler notify
+      - name: Save the classifications and fire numbers to the private store
+        if: ${{ !cancelled() && env.HAS_PRIVATE == 'true' }}  # saved even when an e-mail failed
         working-directory: private
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add extracted
+          git add extracted state
           if ! git diff --cached --quiet; then
             git commit -q -m "extract $(date -u +%Y-%m-%dT%H:%MZ)"
             git pull -q --rebase && git push -q

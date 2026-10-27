@@ -52,9 +52,15 @@ class Report:
     place: Resolution
     scope: str
     war_words: list[str] = field(default_factory=list)
+    index: int = 0  # its place among the fires of its article (a round-up names several)
+
+    @property
+    def key(self) -> str:
+        """The report's own name, stable from run to run: its article and its place in it."""
+        return f"{self.raw_ref}#{self.index}"
 
     @classmethod
-    def of(cls, article: dict, item: dict, scope_: str, words: list[str]) -> Report:
+    def of(cls, article: dict, item: dict, scope_: str, words: list[str], index: int = 0) -> Report:
         published = dt.date.fromisoformat((article.get("published_at") or article["fetched_at"])[:10])
         try:
             occurred = dt.date.fromisoformat(item["occurred_on"]) if item["occurred_on"] else None
@@ -62,7 +68,7 @@ class Report:
             occurred = None
         place = resolve(item["place_text"]) if item["place_text"] else Resolution("unknown")
         return cls(item, article["raw_ref"], article["outlet"], article["url"], article["headline"], published,
-                   occurred or published, occurred is None, place, scope_, words)
+                   occurred or published, occurred is None, place, scope_, words, index)
 
 
 @dataclass
@@ -99,10 +105,10 @@ def load(store: Store) -> Batch:
             batch.failed.append({"article": article, "status": result["status"]})
             continue
         words = war_words(f"{article['headline']}\n{article['text']}")
-        for item in result["items"]:
+        for n, item in enumerate(result["items"]):
             s = scope(item)
             if s in (IN_SCOPE, WAR):
-                batch.reports.append(Report.of(article, item, s, words))
+                batch.reports.append(Report.of(article, item, s, words, n))
             else:
                 batch.set_aside.append({"article": article, "item": item, "scope": s})
     return batch

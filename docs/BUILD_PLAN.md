@@ -266,6 +266,14 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   address the owner will give. This replaces the Google Sheet decided on 2026-10-10, and with it
   the Google service account. How the answer comes back is proposed, not decided: the reviewer
   replies "OK" or says what is wrong.
+  - **Built 2026-10-27 (`crawler/notify.py`), switched off until the owner creates three secrets:**
+    `MAIL_USERNAME` and `MAIL_PASSWORD` (a sending account and its app password) and `MAIL_TO` (the
+    review address; a secret, so it never shows in this public repo or its logs). A step of every
+    crawl. Every fire keeps a number (`state/fires.json`, F-1, F-2…) that the reply can quote. A
+    fire is e-mailed once, when it is in scope and happened in the last 7 days (_chosen_): the
+    12-month history goes to the reviewer as one workbook. War-related fires are not e-mailed.
+    The e-mail is the workbook row: the nine answers, reported in bold, deduced with what they
+    were deduced from. Draft approved by the owner: pending (sent 2026-10-27).
 - Publish: parquet + csv + geojson + aggregate JSON files; `DATA_DICTIONARY.md` generated from the
   schema so the two cannot drift.
 - Done test: a 14-day run, reviewed, with a recall figure against the owner's manual log.
@@ -361,7 +369,7 @@ time: **~$20–70** (_assumes today's density in past years; unknown_).
 | 2 | ~~8 or 9 governorates~~ **decided 2026-10-22: nine** (Keserwan-Jbeil separate) | task 5 | done |
 | 3 | ~~Anthropic API key~~ **done 2026-10-22**: `ANTHROPIC_API_KEY` secret in place (the spend cap is set in Anthropic's console, not visible from here) | task 4 | done |
 | 4 | A person to hand-label the 50-article golden set | task 4 | ~2–3 h, _estimated_ |
-| 5 | ~~Google service account~~ **not needed (2026-10-27)**: review is by e-mail. Instead: the review address, and an account that sends the e-mails | task 5 | 15 min |
+| 5 | ~~Google service account~~ **not needed (2026-10-27)**: review is by e-mail. Instead: the review address, and an account that sends the e-mails, as three secrets (`MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_TO`) | task 5 | 15 min |
 | 6 | ~~The reviewer~~ **decided 2026-10-27**: whoever reads the review address | task 5 | done |
 | 7 | The manual Civil Defense Facebook log, kept for the same 14 days as the pilot run | task 5 | daily, minutes |
 | 8 | Cloudflare account and the repo connected (root `site`, build `npm run build`, output `dist`) | task 7 | 10 min |
