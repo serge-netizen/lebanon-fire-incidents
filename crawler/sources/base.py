@@ -45,6 +45,8 @@ class Source(ABC):
     # Where the article text is on the outlet's pages (an XPath). Without one, a generic reader
     # finds it — which, on some outlets, also took the menus and the lists of other headlines.
     body: ClassVar[str | None] = None
+    # How many days of the archive the 12-month history reads at a time (crawler/backfill.py).
+    archive_days: ClassVar[int] = 31
 
     @abstractmethod
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:

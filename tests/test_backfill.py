@@ -55,25 +55,29 @@ def _run(store, monkeypatch, minutes=60.0, days=60):
     return backfill.run("home", minutes, days=days, store=store, client=object(), today=TODAY, clock=Clock())[0]
 
 
-def test_months_newest_first_end_where_the_daily_crawl_began(tmp_path):
+def test_stretches_newest_first_end_where_the_daily_crawl_began(tmp_path):
     progress = backfill.Progress(_store(tmp_path), "archive")
     assert progress.data["until"] == "2026-10-20"
-    assert progress.months(TODAY, 60) == [(dt.date(2026, 10, 1), dt.date(2026, 10, 19)),
-                                          (dt.date(2026, 9, 1), dt.date(2026, 9, 30)),
-                                          (dt.date(2026, 8, 28), dt.date(2026, 8, 31))]
+    assert progress.stretches(TODAY, 60, 31) == [(dt.date(2026, 9, 19), dt.date(2026, 10, 19)),
+                                                 (dt.date(2026, 8, 28), dt.date(2026, 9, 18))]
+    assert progress.stretches(TODAY, 60, 7)[:2] == [(dt.date(2026, 10, 13), dt.date(2026, 10, 19)),
+                                                    (dt.date(2026, 10, 6), dt.date(2026, 10, 12))]
 
 
 def test_the_history_is_collected_once_and_resumes_when_time_runs_out(tmp_path, monkeypatch):
     store = _store(tmp_path)
-    first = _run(store, monkeypatch, minutes=0.25)  # 15 "seconds": part of October only
-    assert first["done"] == 0 and 0 < first["fetched"] < 19 and first["candidates"] == 19
+    first = _run(store, monkeypatch, minutes=0.25)  # 15 "seconds": part of the newest stretch only
+    assert first["done"] == 0 and 0 < first["fetched"] < 31 and first["candidates"] == 31
     second = _run(store, monkeypatch)
-    assert second["done"] == 3 and first["fetched"] + second["fetched"] == 19 + 30 + 4
+    assert second["done"] == 2 and first["fetched"] + second["fetched"] == 31 + 22
     saved = [a for a in store.articles() if a["url"] != "https://x.test/daily"]
     assert len(saved) == 53 and all("fire" in a["url"] for a in saved)  # candidates only
     assert not (tmp_path / "state" / "fetched" / "archive.txt").exists()  # the daily crawl's list is untouched
     Archive.calls.clear()
     assert _run(store, monkeypatch)["fetched"] == 0 and Archive.calls == []  # nothing left to read
+    longer = _run(store, monkeypatch, days=70)  # a longer history: only the days not yet read
+    assert Archive.calls == [(dt.date(2026, 8, 19), dt.date(2026, 9, 18)), (dt.date(2026, 8, 18), dt.date(2026, 8, 18))]
+    assert longer["fetched"] == 10  # the days not read before; the others are in its list
 
 
 def test_an_article_the_daily_crawl_saved_is_not_fetched_again(tmp_path, monkeypatch):

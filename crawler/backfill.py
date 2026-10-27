@@ -1,10 +1,11 @@
 """The last 12 months (task 6; owner's decision 2026-10-22), read from each outlet's archive.
 
-Month by month, newest first, for each source with a readable archive (`Source.archive`): read
-the month's list of articles, keep the candidates (the daily crawl's keyword check), fetch and
-save the new ones. Resumable: a run stops when its time is up, shared between the sources, and
-the next run carries on from the first month not done. A fetch that fails is tried again on the
-next run.
+Newest first, a stretch of days at a time (`Source.archive_days`: a week for NNA, whose archive
+is one list per category per day; a month elsewhere), for each source with a readable archive
+(`Source.archive`): read the stretch's list of articles, keep the candidates (the daily crawl's
+keyword check), fetch and save the new ones. Resumable: a run stops when its time is up, shared
+between the sources, and the next run carries on from the first stretch not done. A fetch that
+fails is tried again on the next run.
 
 It never edits the daily crawl's files: what it fetched is listed under state/backfill/, and the
 history ends where the daily crawl began for that source (the oldest article the store held when
@@ -30,7 +31,7 @@ TRIES = 3   # chosen: a page that fails three runs in a row is given up
 
 
 class Progress:
-    """state/backfill/<source>.json (where the history ends, the months done, the fetches to try
+    """state/backfill/<source>.json (where the history ends, the stretches done, the fetches to try
     again) and state/backfill/<source>.txt (what the backfill fetched)."""
 
     def __init__(self, store: Store, slug: str):
@@ -45,16 +46,21 @@ class Progress:
             dates = [(a.get("published_at") or a["fetched_at"])[:10] for a in store.articles() if a["outlet"] == slug]
             self.data["until"] = min(dates) if dates else dt.datetime.now(BEIRUT).date().isoformat()
 
-    def months(self, today: dt.date, days: int) -> list[tuple[dt.date, dt.date]]:
-        """(first, last) day of each month of the history, newest first."""
-        start, end = today - dt.timedelta(days=days), dt.date.fromisoformat(self.data["until"]) - dt.timedelta(days=1)
+    def stretches(self, today: dt.date, days: int, size: int) -> list[tuple[dt.date, dt.date]]:
+        """(first, last) day of each stretch of `size` days, counted back from where the history
+        ends (so they are the same on every run), newest first; the oldest is cut at the start."""
+        start = today - dt.timedelta(days=days)
+        last = dt.date.fromisoformat(self.data["until"]) - dt.timedelta(days=1)
         out = []
-        month = end.replace(day=1)
-        while end >= start:
-            out.append((max(month, start), end))
-            end = month - dt.timedelta(days=1)
-            month = end.replace(day=1)
+        while last >= start:
+            out.append((max(last - dt.timedelta(days=size - 1), start), last))
+            last -= dt.timedelta(days=size)
         return out
+
+    def is_done(self, first: dt.date, last: dt.date) -> bool:
+        """Read, alone or as part of a stretch read earlier (a longer history cuts the oldest
+        stretch at an earlier day, which a shorter one did not cover)."""
+        return any(d[0] <= first.isoformat() and last.isoformat() <= d[1] for d in self.data["done"])
 
     def mark(self, key: str) -> None:
         self.fetched_path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,15 +96,15 @@ def _fetch(source: Source, client: PoliteClient, store: Store, progress: Progres
 
 def backfill_source(source: Source, progress: Progress, client: PoliteClient, store: Store, today: dt.date,
                     days: int, deadline: float, clock: Callable[[], float]) -> dict:
-    months = progress.months(today, days)
-    report = {"source": source.slug, "until": progress.data["until"], "months": len(months), "done": 0,
+    stretches = progress.stretches(today, days, source.archive_days)
+    report = {"source": source.slug, "until": progress.data["until"], "stretches": len(stretches), "done": 0,
               "discovered": 0, "candidates": 0, "fetched": 0, "headline_only": 0, "failed": 0, "error": None}
     retry, progress.data["retry"] = progress.data["retry"], []
     for d in retry:
         _fetch(source, client, store, progress, _item(d), report, d.get("tries", 0))
     try:
-        for first, last in months:
-            if first.strftime("%Y-%m") in progress.data["done"]:
+        for first, last in stretches:
+            if progress.is_done(first, last):
                 continue
             if clock() > deadline:
                 break
@@ -112,25 +118,25 @@ def backfill_source(source: Source, progress: Progress, client: PoliteClient, st
                     break
                 _fetch(source, client, store, progress, item, report)
             else:
-                progress.data["done"].append(first.strftime("%Y-%m"))
+                progress.data["done"].append([first.isoformat(), last.isoformat()])
                 continue
-            break  # out of time inside the month: it is read again next run, its fetched articles skipped
+            break  # out of time inside the stretch: it is read again next run, its fetched articles skipped
     except Exception as e:  # noqa: BLE001 — a blocked or changed archive must not stop the other sources
         report["error"] = f"{type(e).__name__}: {e}"[:200]
     progress.save()
-    report["done"] = sum(first.strftime("%Y-%m") in progress.data["done"] for first, _ in months)
+    report["done"] = sum(progress.is_done(first, last) for first, last in stretches)
     return report
 
 
 def run(where: str, minutes: float, days: int = DAYS, store: Store | None = None, client: PoliteClient | None = None,
         today: dt.date | None = None, clock: Callable[[], float] = time.monotonic) -> list[dict]:
     """Each source with an archive gets an equal share of the time left, the one with the fewest
-    months to go first, so time a finished source does not need goes to the others."""
+    stretches to go first, so time a finished source does not need goes to the others."""
     store, client = store or Store(), client or PoliteClient()
     today = today or dt.datetime.now(BEIRUT).date()
     end = clock() + minutes * 60
     todo = [(s, Progress(store, s.slug)) for s in sources_for(where) if s.has_archive()]
-    todo.sort(key=lambda sp: sum(f.strftime("%Y-%m") not in sp[1].data["done"] for f, _ in sp[1].months(today, days)))
+    todo.sort(key=lambda sp: sum(not sp[1].is_done(f, la) for f, la in sp[1].stretches(today, days, sp[0].archive_days)))
     reports = []
     for n, (source, progress) in enumerate(todo):
         share = (end - clock()) / (len(todo) - n)
@@ -140,8 +146,8 @@ def run(where: str, minutes: float, days: int = DAYS, store: Store | None = None
 
 def print_reports(reports: list[dict]) -> None:
     """Counts only: GitHub job logs are public."""
-    print(f"{'source':14} {'until':10} {'months':>6} {'done':>4} {'found':>6} {'cand.':>5} {'new':>4} {'flash':>5} "
+    print(f"{'source':14} {'until':10} {'parts':>5} {'done':>4} {'found':>6} {'cand.':>5} {'new':>4} {'flash':>5} "
           f"{'fail':>4}  error")
     for r in reports:
-        print(f"{r['source']:14} {r['until']:10} {r['months']:>6} {r['done']:>4} {r['discovered']:>6} {r['candidates']:>5} "
+        print(f"{r['source']:14} {r['until']:10} {r['stretches']:>5} {r['done']:>4} {r['discovered']:>6} {r['candidates']:>5} "
               f"{r['fetched']:>4} {r['headline_only']:>5} {r['failed']:>4}  {r['error'] or ''}")

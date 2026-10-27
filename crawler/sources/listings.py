@@ -59,6 +59,7 @@ class NNA(Source):
     where = "home"
     is_upstream = True
     categories = (1, 2, 3, 4, 5, 6, 7, 9, 10, 12)
+    archive_days = 7  # its archive is one list per category per day: 70 pages a week
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
         return self.archive(client, since, dt.datetime.now(BEIRUT).date())
