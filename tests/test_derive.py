@@ -25,35 +25,48 @@ def test_scope(change, expected):
     assert derive.scope(FIRE | change) == expected
 
 
-def test_deduced_leaves_out_what_is_reported():
-    d = derive.deduced(FIRE)
-    assert "furniture_upholstery" not in d["materials"] and "mattresses_bedding" in d["materials"]
-    assert d["hazards"][0] == "electrical_installation" and d["origin"] is None
+def test_nothing_is_deduced_when_the_article_answers():
+    assert derive.materials(FIRE) is None and derive.site(FIRE) is None
+    assert derive.hazards(FIRE | {"hazard_others": ["gas"]}) is None  # a possible cause is an answer too
 
 
-def test_a_sub_type_entry_replaces_its_category():
-    bakery = derive.deduced(FIRE | {"site_primary": "bakery", "material_primary": "not_established"})
-    restaurant = derive.deduced(FIRE | {"site_primary": "restaurant", "material_primary": "not_established"})
-    assert "diesel_fuel_oil" in bakery["materials"] and "cooking_oil_fat" in restaurant["materials"]
+def test_what_burned_from_the_damage_then_the_hazard_then_the_site():
+    unknown = FIRE | {"material_primary": "not_established"}
+    assert derive.materials(unknown | {"vehicles_burned": 1}).values == ["vehicle_other"]
+    gas = derive.materials(unknown | {"hazard_primary": "gas"})
+    assert gas.values == ["lpg_cylinders"] and gas.basis == "from the hazard (Gas)"
+    house = derive.materials(unknown)
+    assert "mattresses_bedding" in house.values and house.basis == "from the site: usual at “House or villa”"
+    # a sub-type's entry replaces its category's
+    assert "diesel_fuel_oil" in derive.materials(unknown | {"site_primary": "bakery"}).values
+    assert "cooking_oil_fat" in derive.materials(unknown | {"site_primary": "restaurant"}).values
+    assert derive.materials(unknown | {"site_primary": "not_established"}) is None
 
 
-def test_a_count_of_burned_vehicles_implies_a_vehicle():
-    unnamed = derive.deduced(FIRE | {"site_primary": "road", "material_primary": "not_established", "vehicles_burned": 1})
-    assert unnamed["materials"][0] == "vehicle_other"
-    named = derive.deduced(FIRE | {"site_primary": "road", "material_primary": "truck", "vehicles_burned": 1})
-    assert "vehicle_other" not in named["materials"]
+def test_hazard_from_what_burned_then_the_site():
+    assert derive.hazards(FIRE | {"material_primary": "cooking_oil_fat"}).values == ["cooking"]
+    assert derive.hazards(FIRE).values[0] == "electrical_installation"  # usual in a house
 
 
-def test_nothing_is_deduced_from_an_unknown_site():
-    d = derive.deduced(FIRE | {"site_primary": "not_established"})
-    assert d["materials"] == [] and d["hazards"] == []
+def test_site_from_what_burned():
+    grass = FIRE | {"site_primary": "not_established", "material_primary": "dry_grass_weeds"}
+    assert derive.site(grass).values == ["natural_areas"] and derive.site_label("natural_areas") == "Natural areas"
+    assert derive.site(FIRE | {"site_primary": "not_established", "material_primary": "car"}) is None
 
 
-def test_origin_is_deduced_only_when_not_reported():
-    assert derive.deduced(FIRE | {"hazard_primary": "electrical_installation"})["origin"] == "accidental"
-    assert derive.deduced(FIRE | {"hazard_primary": "open_burning"})["origin"] is None  # fits any origin
-    reported = FIRE | {"hazard_primary": "electrical_installation", "origin": "deliberate"}
-    assert derive.deduced(reported)["origin"] is None
+def test_origin_from_a_reported_hazard_only():
+    assert derive.origin(FIRE | {"hazard_primary": "electrical_installation"}).values == ["accidental"]
+    assert derive.origin(FIRE | {"hazard_primary": "open_burning"}) is None  # fits any origin
+    assert derive.origin(FIRE | {"hazard_primary": "electrical_installation", "origin": "deliberate"}) is None
+
+
+@pytest.mark.parametrize("damage,level", [
+    ({"deaths": 1}, 4), ({"buildings_burned": 2}, 4), ({"injuries": 2}, 3), ({"smoke_inhalation": 1}, 3),
+    ({"buildings_burned": 1}, 2), ({"area_burned_m2": 5000.0}, 2), ({"property_damage": "damaged"}, 2),
+    ({"property_damage": "none"}, 1), ({"deaths": 0, "injuries": 0}, None), ({}, None),
+])
+def test_gravity_of_the_damage(damage, level):
+    assert derive.gravity(damage) == level
 
 
 @pytest.mark.parametrize("text,found", [

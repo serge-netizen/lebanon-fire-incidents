@@ -51,8 +51,10 @@ def test_schema_and_prompt_cover_every_id():
     for m in tx.material_ids():
         assert m in s["properties"]["material_others"]["items"]["enum"] and f"  {m}:" in prompt
     assert tx.NOT_ESTABLISHED in s["properties"]["material_primary"]["enum"]
-    for h in tx.hazard_ids() + tx.origin_ids():
+    for h in tx.hazard_ids() + tx.origin_ids() + tx.property_damage_ids() + tx.responder_ids():
         assert f"{h}:" in prompt
+    assert s["properties"]["property_damage"]["enum"] == tx.property_damage_ids()
+    assert s["properties"]["responders"]["items"]["enum"] == tx.responder_ids()
 
 
 def test_free_first_check():

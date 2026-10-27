@@ -184,6 +184,10 @@ def merge(group_: list[Report]) -> Incident:
         record[k] = values[0] if values else None
         if len(values) > 1:
             flags.append(f"sources disagree on {k.replace('_', ' ')} ({', '.join(map(str, values))})")
+    stated = {i.get("property_damage", "not_stated") for i in items}
+    record["property_damage"] = next((v for v in ("damaged", "none") if v in stated), "not_stated")
+    if {"damaged", "none"} <= stated:
+        flags.append("sources disagree on the damage (none, damaged)")
     record["responders"] = list(dict.fromkeys(x for i in items for x in i["responders"]))
     reported = sorted(r.date for r in reports if not r.date_deduced)
     date, deduced = (reported[0], False) if reported else (min(r.date for r in reports), True)

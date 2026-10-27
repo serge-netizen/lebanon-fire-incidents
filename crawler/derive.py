@@ -1,14 +1,17 @@
-"""What can be deduced from what an article reports (owner, 2026-10-23), and the scope check.
+"""What can be deduced from what an article reports (owner, 2026-10-23 and 2026-10-27), and the
+scope check.
 
-Claude records only what the article states. This module adds what follows from it, from fixed
-look-up tables in crawler/taxonomy.yaml: what such a site usually contains, what usually starts
-fires there, the origin a hazard implies. Deduced values are kept apart from reported ones,
-labelled, and never counted as reported.
+Claude records only what the article states. A question it leaves open is answered here when
+what it did report allows, with the fixed tables in crawler/taxonomy.yaml — always from a
+reported MAIN value, never from another deduction — and labelled with what it was deduced from.
+The gravity of the damage is always deduced: the brief's severity scale applied to the damage.
 
 Scope: war-related fires are logged with every field but not displayed (owner, 2026-10-23).
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 from crawler import taxonomy as tx
 
@@ -29,26 +32,79 @@ def scope(item: dict) -> str:
     return IN_SCOPE  # munitions among the other hazards is only a possibility: flagged by dedupe.merge
 
 
+@dataclass(frozen=True)
+class Deduced:
+    values: list[str]  # ids: site sub-types or categories, materials, hazards, an origin
+    basis: str         # what they were deduced from, in words
+
+
+def _open(record: dict, kind: str) -> bool:
+    """The article states nothing for this question: no main value and no other one."""
+    return record[f"{kind}_primary"] == tx.NOT_ESTABLISHED and not record[f"{kind}_others"]
+
+
 def _typical(table: str, site: str) -> list[str]:
     """A look-up table's entry for a site sub-type, else for its category."""
     t = tx.lists()[table]
     return t.get(site) or t.get(tx.site_category()[site]) or []
 
 
-def deduced(record: dict) -> dict:
-    """What the main site and the main hazard imply, leaving out what is already reported. A count
-    of burned vehicles with no vehicle among what burned implies one, of a type not stated."""
-    burned = {record["material_primary"], *record["material_others"]}
-    hazards = {record["hazard_primary"], *record["hazard_others"]}
-    materials = _typical("typical_materials", record["site_primary"])
-    if record.get("vehicles_burned") and not any(tx.material_group().get(m) == "vehicles" for m in burned):
-        materials = ["vehicle_other", *materials]
-    origin = None
-    if record["origin"] == "unknown":
-        origin = next((o for o, implied_by in tx.lists()["origin_from_hazard"].items()
-                       if record["hazard_primary"] in implied_by), None)
-    return {
-        "materials": [m for m in dict.fromkeys(materials) if m not in burned],
-        "hazards": [h for h in _typical("typical_hazards", record["site_primary"]) if h not in hazards],
-        "origin": origin,
-    }
+def site_label(code: str) -> str:
+    labels = tx.labels()
+    return labels["site"].get(code) or labels["category"][code]
+
+
+def site(record: dict) -> Deduced | None:
+    if not _open(record, "site"):
+        return None
+    category = tx.lists()["site_from_material"].get(record["material_primary"])
+    if category:
+        return Deduced([category], f"from what burned ({tx.labels()['material'][record['material_primary']]})")
+    return None
+
+
+def materials(record: dict) -> Deduced | None:
+    if not _open(record, "material"):
+        return None
+    if record.get("vehicles_burned"):
+        return Deduced(["vehicle_other"], "from the damage (vehicles burned)")
+    implied = tx.lists()["material_from_hazard"].get(record["hazard_primary"])
+    if implied:
+        return Deduced([implied], f"from the hazard ({tx.labels()['hazard'][record['hazard_primary']]})")
+    typical = _typical("typical_materials", record["site_primary"])
+    return Deduced(typical, f"from the site: usual at “{site_label(record['site_primary'])}”") if typical else None
+
+
+def hazards(record: dict) -> Deduced | None:
+    if not _open(record, "hazard"):
+        return None
+    implied = tx.lists()["hazard_from_material"].get(record["material_primary"])
+    if implied:
+        return Deduced([implied], f"from what burned ({tx.labels()['material'][record['material_primary']]})")
+    typical = _typical("typical_hazards", record["site_primary"])
+    return Deduced(typical, f"from the site: usual at “{site_label(record['site_primary'])}”") if typical else None
+
+
+def origin(record: dict) -> Deduced | None:
+    if record["origin"] != "unknown":
+        return None
+    implied = next((o for o, hazards_ in tx.lists()["origin_from_hazard"].items()
+                    if record["hazard_primary"] in hazards_), None)
+    if implied:
+        return Deduced([implied], f"from the hazard ({tx.labels()['hazard'][record['hazard_primary']]})")
+    return None
+
+
+def gravity(record: dict) -> int | None:
+    """The brief's severity scale (taxonomy `gravity`): the highest level the damage reaches."""
+    def n(field: str) -> float:
+        return record.get(field) or 0
+
+    if n("deaths") > 0 or n("buildings_burned") >= 2:
+        return 4
+    if n("injuries") > 0 or n("smoke_inhalation") > 0 or n("displaced") > 0:
+        return 3
+    if (record.get("property_damage") == "damaged" or n("buildings_burned") == 1 or n("vehicles_burned") > 0
+            or n("area_burned_m2") > 0):
+        return 2
+    return 1 if record.get("property_damage") == "none" else None

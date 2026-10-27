@@ -41,14 +41,22 @@ def test_workbook_has_one_row_per_fire(tmp_path):
     wb = load_workbook(out)
     assert wb.sheetnames == ["Read me", "Fires in Lebanon", "War-related (not shown)", "Articles", "Set aside", "Lists"]
     lists = {row[1]: row for row in wb["Lists"].iter_rows(min_row=2, values_only=True)}
-    assert lists["bakery"][5].startswith("Diesel and fuel oil") and "Cooking" in lists["restaurant"][6]
-    assert lists["vehicle_other"][2].startswith("Other vehicle")
+    assert lists["bakery"][5].startswith("what burned: Diesel and fuel oil") and "hazard: Cooking" in lists["restaurant"][5]
+    assert lists["cooking_oil_fat"][5] == "hazard: Cooking" and lists["gas"][5] == "what burned: LPG and gas cylinders · origin: Accidental"
+    assert lists["vehicle_other"][2].startswith("Other vehicle") and lists["4"][2] == "Deaths or several buildings"
     header = [c.value for c in wb["Fires in Lebanon"][1]]
     row = dict(zip(header, [c.value for c in wb["Fires in Lebanon"][2]], strict=True))
-    assert row["Articles"] == "nna, janoubia" and row["Fire date"] == "2026-10-07 (publication date)"
-    assert row["Site — main"] == "Dump or landfill (Waste sites)" and row["What burned — reported (main first)"] == "Household rubbish"
-    assert "Household rubbish" not in row["What burned — deduced, NOT reported"]
-    assert row["Damage (reported)"] == "1 injured"
-    possible = {"hazard_primary": "not_established", "hazard_others": ["munitions_explosives"]}
-    assert review._reported(possible, "hazard", "hazard") == "not established (also named: Munitions and explosives)"
+    assert row["Date"] == "2026-10-07\n— deduced from the publication date"
+    assert row["What happened (Claude's summary; click to open the article)"].endswith("[2 articles: nna, janoubia]")
+    assert row["Site that witnessed the fire"] == "Dump or landfill\n— reported"
+    assert row["What burned"] == "Household rubbish\n— reported"
+    assert row["Hazard"] == "Open burning; Natural causes\n— deduced from the site: usual at “Dump or landfill”"
+    assert row["Damage"] == "1 injured" and row["Gravity of the damage"] == "3 — Injuries or displaced people"
+    assert row["Origin"] == "not established" and row["Responders"] == "not stated"
     assert [c.value for c in wb["Articles"]["A"]][1:] == ["F1", "F1", "W1"]
+
+
+def test_a_cause_the_article_does_not_settle_is_shown_as_possible():
+    record = {"hazard_primary": "not_established", "hazard_others": ["munitions_explosives", "vehicle_fault"]}
+    text = review._question(record, "hazard", lambda c: c, None)
+    assert text == "not established (possible: munitions_explosives; vehicle_fault)\n— reported"

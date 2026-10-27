@@ -183,6 +183,21 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   residents' appeal is one low-confidence "fire" (0.35, flagged); Borj Rahhal's burned land has no
   site type, the school is the other site. Workbook: `private/review/2026-10-23-second-batch.xlsx`,
   with a "Lists" sheet so the owner can correct or extend every entry.
+- **Owner's third review (2026-10-27): keep it simple, nine questions.** The workbook now has one
+  column per question — date, location, the site that witnessed the fire, what burned, the hazard,
+  the origin, the damage, the gravity of the damage, the responders — 14 columns instead of 20.
+  Each of site, what burned, hazard and origin is **one answer: reported if the article says it,
+  else deduced (naming what it was deduced from), else "not established"**; deduced values are no
+  longer shown beside reported ones. Deductions start from a reported main value only, never from
+  another deduction: site ← what burned (wild vegetation → natural areas, crops → farmland); what
+  burned ← the damage (a vehicle when vehicles burned), else the hazard (gas → gas cylinders),
+  else the site; hazard ← what burned (cooking oil → cooking), else the site; origin ← the hazard.
+  - **Gravity** is the brief's severity scale (§6), deduced from the damage: 4 deaths or several
+    buildings, 3 injuries or displaced people, 2 damage without casualties, 1 no damage. Level 1
+    reads "no damage (put out at its start)" where the brief said "extinguished on arrival", which
+    articles rarely state. A new reported field, `property_damage` (none / damaged / not stated),
+    carries damage stated in words ("اقتصرت الأضرار على الماديات") when there are no figures.
+  - Responders moved into the lists, with Arabic cue words. Instructions v5.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
   have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also

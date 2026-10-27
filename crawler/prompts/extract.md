@@ -29,9 +29,12 @@ Rules:
 {origins}
    Why a fire started is never a hazard: arson with petrol is hazard "fuel_flammable_liquid" with origin "deliberate"; a fire started by shelling is hazard "munitions_explosives" with origin "conflict_related".
 10. Numbers are null when not stated, and 0 only when the article says none ("no casualties" gives deaths 0 and injuries 0). Area: 1 dunum = 1,000 m², 1 hectare = 10,000 m².
-11. responders: who fought the fire, as stated.
-12. evidence: for every field you filled except record_type and is_lebanon, one short verbatim quote from the article (field = the field name).
-13. confidence: from 0 to 1, how sure you are that the item is right.
+11. property_damage, in words, one of:
+{property_damage}
+12. responders: who fought the fire, as stated, any of:
+{responders}
+13. evidence: for every field you filled except record_type and is_lebanon, one short verbatim quote from the article (field = the field name).
+14. confidence: from 0 to 1, how sure you are that the item is right.
 
 SITES — the facility or place that witnessed the fire (use the sub-type id):
 {sites}
