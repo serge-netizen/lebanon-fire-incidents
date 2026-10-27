@@ -274,6 +274,23 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 Same adapters pointed at archives, month by month, resumable (state in the private store), so a
 run that times out picks up where it stopped. Sanity plot of monthly counts.
 **Scope (owner, 2026-10-22): the last 12 months.** The 10-year history is parked.
+**Order (owner, 2026-10-27): the history before the published data and the site.**
+- **Built 2026-10-27 (`crawler/backfill.py`).** Newest first, a week at a time for NNA (70 pages a
+  week) and a month elsewhere, the daily crawl's keyword check,
+  the outlet readers of task 3. Each crawl gives it a little time (GitHub 15 minutes, the Mac 20,
+  _chosen_), shared between the sources, so the year fills in over a few days without anyone
+  starting it; `backfill.yml` gives the GitHub sources a longer run by hand. It keeps its own
+  lists (`state/backfill/`) and ends, per source, the day before the daily crawl's oldest article,
+  so it never touches the daily crawl's files nor fetches the same article. A failed page is
+  tried on the next two runs, then given up. The crawl's classification step picks up what it
+  saves (at most 60 articles a run).
+- **Archives read (2026-10-27):** NNA (daily sitemaps; lead only, as every day), Janoubia (its
+  posts API), L'Orient Today (all article sitemaps, dated by last change) and Annahar (monthly
+  sitemaps with headlines). **Not read, and why:** LBCI's archive sitemaps carry no dates and stop
+  at July 2026; Lebanon24's stop in 2018; MTV's monthly sitemaps give numbers, not headlines (17,000
+  addresses a month to open one by one); Al Jadeed and Tayyar have none; Lebanon Debate's pages
+  stop going back; Elnashra has none (the Internet Archive lists some of its addresses — a later
+  option). Most of their local news comes from NNA, which is read.
 
 ### Task 7 — Site v1
 **Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML

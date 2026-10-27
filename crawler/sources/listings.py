@@ -61,10 +61,13 @@ class NNA(Source):
     categories = (1, 2, 3, 4, 5, 6, 7, 9, 10, 12)
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
+        return self.archive(client, since, dt.datetime.now(BEIRUT).date())
+
+    def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        """The daily sitemaps reach back about two years."""
         items: dict[str, DiscoveredItem] = {}
-        today = dt.datetime.now(BEIRUT).date()
-        day = since
-        while day <= today:
+        day = first
+        while day <= last:
             for cat in self.categories:
                 page = client.get(f"https://nna-leb.gov.lb/ar/sitemap/n/{cat}?date={day.isoformat()}")
                 if page.blocked == "bot_check":
@@ -123,10 +126,18 @@ class Janoubia(Source):
     where = "home"  # the generic reader is right here; its body block also holds share buttons
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
+        return self._posts(client, f"&after={since.isoformat()}T00:00:00")
+
+    def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        """The archive reaches 2011."""
+        return self._posts(client, f"&after={first.isoformat()}T00:00:00"
+                                   f"&before={(last + dt.timedelta(days=1)).isoformat()}T00:00:00")
+
+    def _posts(self, client: PoliteClient, dates: str) -> list[DiscoveredItem]:
         items = []
         for number in range(1, 30):
             page = client.get("https://janoubia.com/wp-json/wp/v2/posts?per_page=100&_fields=date,link,title"
-                              f"&after={since.isoformat()}T00:00:00&page={number}")
+                              f"{dates}&page={number}")
             if page.status == 400:  # past the last page
                 break
             if page.blocked == "bot_check" or not page.ok:
@@ -147,19 +158,35 @@ class LOrientToday(Source):
     slug = "lorient_today"
     where = "home"
 
+    def __init__(self) -> None:
+        self._sitemaps: list[list[tuple[str, dt.datetime]]] | None = None  # every file, read once a run
+
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
+        return self._items(self._files(client, newest=2), since, dt.date.max)
+
+    def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        """About 25 sitemaps of 2,000 articles each, back to about 2018; dated by last change."""
+        if self._sitemaps is None:
+            self._sitemaps = self._files(client)
+        return self._items(self._sitemaps, first, last)
+
+    def _files(self, client: PoliteClient, newest: int | None = None) -> list[list[tuple[str, dt.datetime]]]:
         index = client.get("https://today.lorientlejour.com/sitemap_index.xml")
         if not index.ok:
             raise RuntimeError(f"sitemap index: {index.blocked or index.status}")
         files = sorted((int(n), u) for u, n in re.findall(r"<loc>(\S*?article-sitemap(\d+)\.xml)</loc>", index.text))
-        items: dict[str, DiscoveredItem] = {}
-        for _, url in files[-2:]:
+        out = []
+        for _, url in files[-newest:] if newest else files:
             page = client.get(url)
-            if not page.ok:
-                continue
-            for loc, stamp in re.findall(r"<loc>(.*?)</loc>\s*<lastmod>(.*?)</lastmod>", page.text):
-                when = parse_when(stamp)
-                if when and when.date() >= since:
-                    clean = clean_url(loc)
-                    items.setdefault(clean, DiscoveredItem(clean, slug_title(clean), when, self.slug))
+            if page.ok:
+                out.append([(clean_url(loc), when) for loc, stamp in
+                            re.findall(r"<loc>(.*?)</loc>\s*<lastmod>(.*?)</lastmod>", page.text)
+                            if (when := parse_when(stamp))])
+        return out
+
+    def _items(self, files: list[list[tuple[str, dt.datetime]]], first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        items: dict[str, DiscoveredItem] = {}
+        for url, when in (entry for f in files for entry in f):
+            if first <= when.date() <= last:
+                items.setdefault(url, DiscoveredItem(url, slug_title(url), when, self.slug))
         return list(items.values())

@@ -40,6 +40,10 @@ jobs:
       - name: Crawl the sources GitHub can read
         if: ${{ env.HAS_PRIVATE == 'true' }}
         run: uv run crawler run --where github
+      # The 12-month history (task 6, crawler/backfill.py): a little each run until it is complete.
+      - name: Collect the 12-month history, part of it each run
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        run: uv run crawler backfill --where github --minutes 15
       - name: Rebuild the Civil Defense daily bulletin series
         if: ${{ env.HAS_PRIVATE == 'true' }}
         run: uv run crawler bulletins

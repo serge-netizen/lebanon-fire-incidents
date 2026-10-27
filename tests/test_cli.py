@@ -1,3 +1,5 @@
+import pytest
+
 from crawler.cli import main
 
 
@@ -6,5 +8,6 @@ def test_dry_run_passes(capsys):
     assert "dry run complete" in capsys.readouterr().out
 
 
-def test_unbuilt_command_says_so():
-    assert main(["backfill"]) == 2
+def test_backfill_needs_to_know_which_machine_runs_it():
+    with pytest.raises(SystemExit):
+        main(["backfill"])

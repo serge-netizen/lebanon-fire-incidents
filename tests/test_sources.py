@@ -3,8 +3,8 @@ import datetime as dt
 from crawler.fetch import Page
 from crawler.sources.base import DiscoveredItem
 from crawler.sources.common import clean_url, rss_entries, slug_title
-from crawler.sources.listings import NNA, Elnashra, LebanonDebate
-from crawler.sources.sitemaps import LBCI, MTV, Lebanon24, Tayyar
+from crawler.sources.listings import NNA, Elnashra, Janoubia, LebanonDebate, LOrientToday
+from crawler.sources.sitemaps import LBCI, MTV, Annahar, Lebanon24, Tayyar
 
 
 class FakeClient:
@@ -102,3 +102,40 @@ def test_nna_summary_cut_in_half_gives_the_headline():
 def test_lebanon24_key_is_the_article_number():
     assert Lebanon24().key("https://www.lebanon24.com/news/lebanon-news/1584349/lebanon24?src=rss") == "1584349"
     assert LBCI().key("https://x.test/a") == "https://x.test/a"
+
+
+class RecordingClient(FakeClient):
+    def __init__(self, pages: dict[str, str] | None = None, default: str = ""):
+        super().__init__(pages, default)
+        self.asked: list[str] = []
+
+    def get(self, url: str) -> Page:
+        self.asked.append(url)
+        return super().get(url)
+
+
+def test_archives_read_only_the_days_asked():
+    nna = RecordingClient(default="<urlset><url><loc>https://nna-leb.gov.lb/ar/news/1/إخماد-حريق</loc></url></urlset>")
+    items = NNA().archive(nna, dt.date(2025, 11, 1), dt.date(2025, 11, 2))
+    assert len(nna.asked) == 2 * len(NNA.categories) and "date=2025-11-02" in nna.asked[-1] and len(items) == 1
+
+    wp = RecordingClient(default='[{"date": "2025-11-01T10:00:00", "link": "https://janoubia.com/x", "title": {"rendered": "حريق"}}]')
+    assert len(Janoubia().archive(wp, dt.date(2025, 11, 1), dt.date(2025, 11, 30))) == 1
+    assert "after=2025-11-01T00:00:00&before=2025-12-01T00:00:00" in wp.asked[0]
+
+    entry = ("<url><loc>https://www.annahar.com/lebanon/1/x</loc><lastmod>{d}T10:00:00Z</lastmod>"
+             "<news:title>حريق في {d}</news:title></url>")
+    month = "<urlset>" + entry.format(d="2025-11-30") + entry.format(d="2025-11-01") + "</urlset>"
+    annahar = RecordingClient(default=month)
+    items = Annahar().archive(annahar, dt.date(2025, 11, 15), dt.date(2025, 12, 2))
+    assert [a.split("sitemap-")[1] for a in annahar.asked] == ["2025-11.xml", "2025-12.xml"]
+    assert [i.headline for i in items] == ["حريق في 2025-11-30", "حريق في 2025-11-30"]  # the same file, served twice
+
+    index = '<loc>https://today.lorientlejour.com/article-sitemap1.xml</loc>'
+    sitemap = ('<loc>https://today.lorientlejour.com/article/1/fire-in-tyre.html</loc><lastmod>2025-11-05T08:00:00+00:00</lastmod>'
+               '<loc>https://today.lorientlejour.com/article/2/new-cabinet.html</loc><lastmod>2026-02-01T08:00:00+00:00</lastmod>')
+    lorient = RecordingClient({"sitemap_index": index, "article-sitemap1": sitemap})
+    source = LOrientToday()
+    assert [i.headline for i in source.archive(lorient, dt.date(2025, 11, 1), dt.date(2025, 11, 30))] == ["fire in tyre"]
+    source.archive(lorient, dt.date(2026, 2, 1), dt.date(2026, 2, 28))
+    assert len(lorient.asked) == 2  # the sitemaps are read once a run

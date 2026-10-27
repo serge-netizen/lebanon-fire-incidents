@@ -20,6 +20,8 @@ main() {
   git pull -q --ff-only origin main || echo "code update failed (offline?): running the copy already here"
   git -C private pull -q --rebase || echo "store update failed (offline?): continuing"
   "$HOME/.local/bin/uv" run --quiet crawler run --where home
+  # The 12-month history (crawler/backfill.py): a little each run until it is complete.
+  "$HOME/.local/bin/uv" run --quiet crawler backfill --where home --minutes 20
   cd private || exit 1
   git add raw state
   if ! git diff --cached --quiet; then

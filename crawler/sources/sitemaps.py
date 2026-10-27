@@ -50,6 +50,19 @@ class Annahar(NewsSitemapSource):
     slug = "annahar"
     sitemap = "https://www.annahar.com/sitemap/sitemap-news.xml"
 
+    def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        """One sitemap per month, headlines included, back to 2019."""
+        items: list[DiscoveredItem] = []
+        month = first.replace(day=1)
+        while month <= last:
+            page = client.get(f"https://www.annahar.com/sitemap/sitemap-{month:%Y-%m}.xml")
+            if not page.ok:
+                raise RuntimeError(f"sitemap {month:%Y-%m}: {page.blocked or page.status}")
+            items += [DiscoveredItem(url, title, when, self.slug) for url, title, when in news_sitemap_entries(page.text)
+                      if first <= when.date() <= last]
+            month = (month + dt.timedelta(days=32)).replace(day=1)
+        return items
+
 
 class Tayyar(NewsSitemapSource):
     slug = "tayyar"

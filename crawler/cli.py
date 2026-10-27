@@ -55,7 +55,10 @@ def main(argv: list[str] | None = None) -> int:
     ext.add_argument("--workers", type=int, default=4)
     rev = sub.add_parser("review", help="write the owner's review workbook from the classifications")
     rev.add_argument("--out", type=Path, required=True)
-    sub.add_parser("backfill", help="crawl archives (task 6)")
+    back = sub.add_parser("backfill", help="the 12-month history from the outlets' archives, part of it each run (task 6)")
+    back.add_argument("--where", choices=["github", "home", "all"], required=True)
+    back.add_argument("--minutes", type=float, default=20, help="time for this run, shared between the sources")
+    back.add_argument("--days", type=int, default=365)
     gaz = sub.add_parser("gazetteer", help="rebuild the place-name table from OCHA's spreadsheet")
     gaz.add_argument("--xlsx", type=Path, help="use a local copy instead of downloading")
     geo = sub.add_parser("geocode", help="resolve a place string, e.g. 'بلدة تول - قضاء النبطية'")
@@ -80,6 +83,11 @@ def main(argv: list[str] | None = None) -> int:
 
         reports = pipeline.run(args.where, days=args.days, max_fetch=args.max_fetch)
         pipeline.print_reports(reports)
+        return 0
+    if args.command == "backfill":
+        from crawler import backfill
+
+        backfill.print_reports(backfill.run(args.where, args.minutes, days=args.days))
         return 0
     if args.command == "bulletins":
         from crawler import bulletin

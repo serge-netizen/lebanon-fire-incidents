@@ -50,6 +50,16 @@ class Source(ABC):
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
         """Articles published on or after `since`, from feeds, sitemaps or listing pages."""
 
+    def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
+        """Articles published from `first` to `last`, both included, read from the outlet's archive
+        (the 12-month history, crawler/backfill.py). An outlet without a readable archive keeps
+        this default."""
+        raise NotImplementedError
+
+    @classmethod
+    def has_archive(cls) -> bool:
+        return cls.archive is not Source.archive
+
     def key(self, url: str) -> str:
         """What the fetched list records for an article: its address, unless the outlet serves
         one article under several addresses."""
