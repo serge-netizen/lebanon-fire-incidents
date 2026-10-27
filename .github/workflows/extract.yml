@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "At most this many articles (empty = every one not yet classified with the current instructions)"
+        description: "At most this many articles not yet classified with the current instructions (raise it to do more)"
         default: "100"
       force:
         description: "Classify again the articles already classified with the current instructions"
