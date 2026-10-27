@@ -17,6 +17,10 @@ built and what was decided along the way.
 - Work task by task (BRIEF §10). Each task ends on its "done" test, passing in CI.
 - Nobody pushes straight to `main` once the scaffold is merged: branch, pull request, green CI.
   The one exception is the crawl bot, which commits `data/official/daily_tallies.csv` itself.
+- **Merge by fast-forward, never with GitHub's merge button or `gh pr merge`**: those write the
+  account's primary e-mail into the commit, not the no-reply address. Once the PR's checks pass
+  on its head commit, rebase the branch on `main` if `main` has moved (and wait for the checks
+  again), then `git push origin <head sha>:main`; GitHub marks the PR merged.
 - **Two machines crawl.** GitHub reads the sources it can reach; the owner's Mac reads the ones
   that block GitHub (`scripts/home-crawl.sh`), from its own clone
   `~/Projects/lebanon-fire-incidents-runner` on `main` — never develop in that clone. Before marking a source `where = "github"`, check it
