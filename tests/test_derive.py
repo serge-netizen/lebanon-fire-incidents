@@ -52,6 +52,8 @@ def test_site_from_what_burned():
     grass = FIRE | {"site_primary": "not_established", "material_primary": "dry_grass_weeds"}
     assert derive.site(grass).values == ["natural_areas"] and derive.site_label("natural_areas") == "Natural areas"
     assert derive.site(FIRE | {"site_primary": "not_established", "material_primary": "car"}) is None
+    beside_a_school = grass | {"site_others": ["education"]}  # the school is beside it, not the main site
+    assert derive.site(beside_a_school).values == ["natural_areas"]
 
 
 def test_origin_from_a_reported_hazard_only():

@@ -58,13 +58,14 @@ def _question(record: dict, kind: str, label: Callable[[str], str], deduced: Ded
     """One answer: reported (the main value, then the others), else deduced (with what it was
     deduced from), else not established."""
     primary, others = record[f"{kind}_primary"], [label(c) for c in record[f"{kind}_others"]]
+    # other values: for a hazard, causes the article names without settling; else places or things also named
+    named = f"{'possible' if kind == 'hazard' else 'also'}: {'; '.join(others)}" if others else ""
     if primary != tx.NOT_ESTABLISHED:
-        return label(primary) + (f" (also: {'; '.join(others)})" if others else "") + "\n— reported"
-    if others:  # named, but not as the main value: for a hazard, causes the article does not settle
-        return f"{NOT_ESTABLISHED} ({'possible' if kind == 'hazard' else 'also'}: {'; '.join(others)})\n— reported"
+        return label(primary) + (f" ({named})" if named else "") + "\n— reported"
     if deduced:
-        return f"{'; '.join(label(c) for c in deduced.values)}\n— deduced {deduced.basis}"
-    return NOT_ESTABLISHED
+        return f"{'; '.join(label(c) for c in deduced.values)}\n— deduced {deduced.basis}" + (
+            f"\n{named} — reported" if named else "")
+    return f"{NOT_ESTABLISHED} ({named})\n— reported" if named else NOT_ESTABLISHED
 
 
 def _location(r: Resolution, as_written: str | None) -> str:
