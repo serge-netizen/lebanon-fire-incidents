@@ -27,7 +27,7 @@ from crawler.store import Store
 
 # The instructions, as UTF-8 text (BRIEF §11); the lists are filled in from the taxonomy.
 PROMPT_PATH = Path(__file__).parent / "prompts" / "extract.md"
-PROMPT_VERSION = "4"  # bump whenever the instructions or the lists change; stored with every result
+PROMPT_VERSION = "5"  # bump whenever the instructions or the lists change; stored with every result
 EFFORT = "medium"     # Haiku 5.5's default; chosen, to be tuned on the owner's corrections
 MAX_OTHERS = 4        # owner, 2026-10-22: one main tag and up to four more (site, burned, hazard)
 MAX_TEXT_CHARS = 20_000
@@ -37,7 +37,6 @@ PRICE = {"claude-haiku-5-5": (0.10, 0.50)}
 FIRE_WORDS = re.compile(fold(r"حريق|حرائق|إخماد|أخمد|تخمد|النيران|نيران|اشتعال|احتراق|التهمت|تلتهم"
                              r"|\bfires?\b|\bblazes?\b|wildfires?|\bincendies?\b"))
 RECORD_TYPES = ["incident", "aggregate_report", "background", "not_a_fire"]
-RESPONDERS = ["civil_defense", "beirut_fire_brigade", "army", "red_cross", "municipality", "other"]
 
 
 # ---------------------------------------------------------------- what the model must return
@@ -72,7 +71,8 @@ def schema() -> dict:
             "vehicles_burned": _nullable("integer"),
             "area_burned_m2": _nullable("number"),
             "displaced": _nullable("integer"),
-            "responders": {"type": "array", "items": {"enum": RESPONDERS}},
+            "property_damage": {"enum": tx.property_damage_ids()},
+            "responders": {"type": "array", "items": {"enum": tx.responder_ids()}},
             "evidence": {"type": "array", "items": {
                 "type": "object", "additionalProperties": False,
                 "properties": {"field": {"type": "string"}, "quote": {"type": "string"}},
@@ -115,10 +115,13 @@ def system_prompt() -> str:
     materials = [*_groups(t["materials"], "items"), f"  {tx.NOT_ESTABLISHED}: the article does not say what burned."]
     hazards = [_entry(k, v) for k, v in t["hazards"].items()]
     origins = [f"   {k}: {v['definition']}" for k, v in t["origins"].items()]
+    property_damage = [f"   {k}: {v['definition']}" for k, v in t["property_damage"].items()]
+    responders = [f"   {k}: {v['label']} (words such as: {'، '.join(v['cues'])})" for k, v in t["responders"].items()]
     damages = [f"  {k}: {v}" for k, v in t["damages"].items()]
     template = PROMPT_PATH.read_text(encoding="utf-8")
     return template.format(sites="\n".join(sites), materials="\n".join(materials), hazards="\n".join(hazards),
-                           origins="\n".join(origins), damages="\n".join(damages), max_others=MAX_OTHERS)
+                           origins="\n".join(origins), property_damage="\n".join(property_damage),
+                           responders="\n".join(responders), damages="\n".join(damages), max_others=MAX_OTHERS)
 
 
 def user_message(article: dict) -> str:

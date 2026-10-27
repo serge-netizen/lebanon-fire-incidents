@@ -63,15 +63,16 @@ def test_a_chain_of_near_matches_never_merges_two_fires():
 
 
 def test_merge_fills_gaps_and_flags_disagreements():
-    main = report("a", SAIDA_CITY, injuries=2)
+    main = report("a", SAIDA_CITY, injuries=2, property_damage="none")
     other = report("b", SAIDA, injuries=3, hazard_primary="electrical_installation", origin="accidental",
-                   scope="war_related")
+                   scope="war_related", property_damage="damaged")
     incident = dedupe.merge([other, main])
     rec = incident.record
     assert incident.reports[0] is main and rec["injuries"] == 2
     assert rec["hazard_primary"] == "electrical_installation" and rec["origin"] == "accidental"
-    assert incident.scope == "war_related"
+    assert incident.scope == "war_related" and rec["property_damage"] == "damaged"
     assert any("injuries" in f for f in incident.flags) and any("war-related" in f for f in incident.flags)
+    assert any("on the damage" in f for f in incident.flags)
 
 
 def test_war_words_are_flagged_on_a_fire_in_scope():

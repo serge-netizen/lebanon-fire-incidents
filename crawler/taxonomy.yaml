@@ -1,4 +1,8 @@
-# Classification of a fire incident — DRAFT 0.3 (2026-10-23), after the owner's second review.
+# Classification of a fire incident — DRAFT 0.4 (2026-10-27), after the owner's third review.
+#
+# The review sheet answers nine questions per fire (owner, 2026-10-27): date, location, the site
+# that witnessed the fire, what burned, the hazard, the origin, the damage, the gravity of the
+# damage, the responders.
 #
 # One fire = one record, built in this order (each step needs the one before it):
 #   0. SCOPE      a fire? in Lebanon? caused by war?         record_type, is_lebanon, `origins`
@@ -10,20 +14,22 @@
 #   4. BURNED     what was burning                            `materials`
 #   5. HAZARD     what started or fed it                      `hazards`
 #   6. ORIGIN     accident, deliberate, war, or unknown       `origins`
-#   7. DAMAGE     deaths, injuries, buildings, area…          `damages`
+#   7. DAMAGE     deaths, injuries, buildings, area…          `damages`, `property_damage`
+#   8. GRAVITY    how grave the damage was                    `gravity`, from DAMAGE
+#   9. RESPONDERS who fought the fire                         `responders`
 #
 # SITE, BURNED and HAZARD answer separate questions and never repeat each other: a generator
 # fire in a school's yard is site `education`, burned `generator_unit` + `diesel_fuel_oil`,
 # hazard `generator`. The site is the premises or land, never the thing that burned: a car on
 # a highway is site `road`, burned `car`.
 #
-# REPORTED or DEDUCED — every value is one or the other (owner, 2026-10-23):
-# - reported: Claude read it in the article and quotes the words as evidence;
-# - deduced:  code looks it up in a fixed table at the end of this file — what a kind of site
-#             usually contains (`typical_materials`) or usually starts fires (`typical_hazards`),
-#             the origin a hazard implies (`origin_from_hazard`) — and the district of a village
-#             (gazetteer), the publication date when the fire date is not given.
-# Claude never deduces. Deduced values are shown apart, labelled, and never counted as reported.
+# REPORTED or DEDUCED (owner, 2026-10-23 and 2026-10-27). Each answer is:
+# - reported when the article states it: Claude read it and quotes the words as evidence;
+# - otherwise deduced, by code, from what the article reported, with the fixed tables at the end
+#   of this file — and labelled with what it was deduced from;
+# - otherwise "not established".
+# Claude never deduces, and a deduction is made from reported values only, never from another
+# deduction. A deduced value is never counted as reported.
 #
 # Tags: one MAIN value plus up to FOUR others for site, burned and hazard; counts use the main
 # one. `not_established` closes each list: the article does not say. That is an answer.
@@ -322,6 +328,14 @@ origins:
   conflict_related: {label: "War-related", definition: "Caused by armed hostilities: strikes, shelling, drones, military flares, munitions, fires set by an army, military detonations. Logged, out of scope."}
   unknown: {label: "Unknown", definition: "The article does not say, or says it is under investigation."}
 
+responders:
+  civil_defense: {label: "Civil Defense", cues: [الدفاع المدني]}
+  beirut_fire_brigade: {label: "Beirut Fire Brigade", cues: [فوج إطفاء بيروت]}
+  army: {label: "Army", cues: [الجيش, مروحيات الجيش]}
+  red_cross: {label: "Red Cross", cues: [الصليب الأحمر]}
+  municipality: {label: "Municipality", cues: [البلدية, شرطة البلدية]}
+  other: {label: "Other (health committees, scouts, UNIFIL, residents)", cues: [الهيئة الصحية, كشافة الرسالة, اليونيفيل, الأهالي]}
+
 damages:
   deaths: People killed by the fire.
   injuries: People injured (burns, falls), smoke inhalation excluded.
@@ -331,9 +345,32 @@ damages:
   area_burned_m2: Area burned, converted to square metres (1 dunum = 1,000 m²; 1 hectare = 10,000 m²).
   displaced: People or families who had to leave their homes (unit as reported).
 
+# Damage stated in words, when the article gives no numbers (it feeds the gravity of the damage).
+property_damage:
+  none: {label: "No damage", definition: "The article says the fire caused no damage, or was put out at its start (في مهده)."}
+  damaged: {label: "Damage stated", definition: "The article says property was damaged or destroyed (اقتصرت الأضرار على الماديات، أتت النيران على، التهمت)."}
+  not_stated: {label: "Not stated", definition: "The article says nothing about damage."}
+
+# Gravity of the damage: the brief's severity scale (§6), deduced by code from the damage the
+# article reports — the highest level that applies; "not established" when it says nothing.
+gravity:
+  4: {label: "Deaths or several buildings", rule: "deaths, or two buildings or more burned"}
+  3: {label: "Injuries or displaced people", rule: "injuries, smoke inhalation, or people displaced"}
+  2: {label: "Damage, no casualties", rule: "a building, vehicles or land burned, or damage stated in words"}
+  1: {label: "No damage", rule: "the article says no damage, or that the fire was put out at its start"}
+
 # ------------------------------------------------------------------ DEDUCED (look-up tables)
-# Applied by code to the MAIN site. A sub-type's entry replaces its category's. What is already
-# reported is left out. Draft for the owner's review.
+# Used only when the article does not state the answer, and always from a MAIN value it reports:
+#   site         ← what burned   (`site_from_material`)
+#   what burned  ← the damage    (a vehicle, when vehicles burned), else ← the hazard
+#                  (`material_from_hazard`), else ← the site (`typical_materials`)
+#   hazard       ← what burned   (`hazard_from_material`), else ← the site (`typical_hazards`)
+#   origin       ← the hazard    (`origin_from_hazard`)
+#   gravity      ← the damage    (`gravity` above)
+#   date ← the publication date; district and governorate ← the village (the gazetteer).
+# In the site tables, a sub-type's entry replaces its category's. Drafts for the owner's review.
+
+# What a kind of site usually contains.
 typical_materials:
   residential: [furniture_upholstery, mattresses_bedding, textiles_clothing, appliances_electronics, lpg_cylinders]
   informal_settlement: [plastics_nylon, textiles_clothing, mattresses_bedding, lpg_cylinders, wood_timber]
@@ -377,6 +414,7 @@ typical_materials:
   park_square: [trees_shrubs, dry_grass_weeds]
   beach_riverbank: [dry_grass_weeds, household_rubbish, trees_shrubs]
 
+# What usually starts fires at a kind of site.
 typical_hazards:
   residential: [electrical_installation, electrical_appliance, gas, cooking, heating]
   informal_settlement: [heating, cooking, gas, smoking_open_flame]
@@ -410,3 +448,33 @@ origin_from_hazard:
   accidental: [electrical_installation, electrical_appliance, battery_solar, generator, gas, cooking, heating,
                smoking_open_flame, hot_work_industrial, fireworks, vehicle_fault, natural]
   conflict_related: [munitions_explosives]
+
+# The site a MAIN burned thing implies: wild vegetation burns on natural land, crops on farmland.
+site_from_material:
+  dry_grass_weeds: natural_areas
+  trees_shrubs: natural_areas
+  crops_grain: agricultural
+  hay_straw: agricultural
+
+# The hazard a MAIN burned thing implies: cooking oil burned, so the hazard was cooking.
+hazard_from_material:
+  cooking_oil_fat: cooking
+  lpg_cylinders: gas
+  batteries: battery_solar
+  solar_equipment: battery_solar
+  generator_unit: generator
+  wiring_cables: electrical_installation
+  electrical_panels: electrical_installation
+  appliances_electronics: electrical_appliance
+  pyrotechnics: fireworks
+  munitions: munitions_explosives
+
+# What burned first, as a MAIN hazard implies it: the hazard was gas, so gas burned. Only where
+# that always holds — fireworks or a shell set fire to something else.
+material_from_hazard:
+  cooking: cooking_oil_fat
+  gas: lpg_cylinders
+  battery_solar: batteries
+  generator: generator_unit
+  electrical_installation: wiring_cables
+  electrical_appliance: appliances_electronics

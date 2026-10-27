@@ -50,9 +50,18 @@ def origin_ids() -> list[str]:
     return list(lists()["origins"])
 
 
+def responder_ids() -> list[str]:
+    return list(lists()["responders"])
+
+
+def property_damage_ids() -> list[str]:
+    return list(lists()["property_damage"])
+
+
 @lru_cache(maxsize=1)
 def labels() -> dict[str, dict[str, str]]:
-    """Plain-English label of every id, by kind: site, category, material, hazard, origin."""
+    """Plain-English label of every id, by kind: site, category, material, hazard, origin,
+    responder, property_damage, gravity."""
     t = lists()
     out: dict[str, dict[str, str]] = {"site": {}, "category": {}, "material": {}}
     for category, v in t["site_types"].items():
@@ -64,4 +73,7 @@ def labels() -> dict[str, dict[str, str]]:
     out["material"][NOT_ESTABLISHED] = "Not established"
     out["hazard"] = {k: v["label"] for k, v in t["hazards"].items()}
     out["origin"] = {k: v["label"] for k, v in t["origins"].items()}
+    out["responder"] = {k: v["label"] for k, v in t["responders"].items()}
+    out["property_damage"] = {k: v["label"] for k, v in t["property_damage"].items()}
+    out["gravity"] = {k: v["label"] for k, v in t["gravity"].items()}
     return out

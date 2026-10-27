@@ -32,6 +32,11 @@ def test_lookup_tables_use_known_ids():
             assert set(values) <= known, (table, key, set(values) - known)
     for origin, hazards in t["origin_from_hazard"].items():
         assert origin in tx.origin_ids() and set(hazards) <= set(tx.hazard_ids())
+    materials, hazards = set(tx.material_ids()), set(tx.hazard_ids())
+    assert set(t["site_from_material"]) <= materials and set(t["site_from_material"].values()) <= categories
+    assert set(t["hazard_from_material"]) <= materials and set(t["hazard_from_material"].values()) <= hazards
+    assert set(t["material_from_hazard"]) <= hazards and set(t["material_from_hazard"].values()) <= materials
+    assert sorted(t["gravity"]) == [1, 2, 3, 4]
     assert OUTDOOR <= categories
 
 
