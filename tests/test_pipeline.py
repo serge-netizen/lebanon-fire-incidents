@@ -56,3 +56,26 @@ def test_catch_up_after_days_off(tmp_path):
     (tmp_path / "state" / "runs").mkdir(parents=True)
     (tmp_path / "state" / "runs" / "fake.json").write_text('{"last_success": "2026-10-10T08:00:00+03:00"}')
     assert pipeline.since_for(store, "fake", 3, today) == dt.date(2026, 10, 9)
+
+
+class TwoAddresses(FakeSource):
+    """One article, a different address on each run: the outlet's key says it is the same."""
+    slug = "two"
+    address = "https://x.test/news/lebanon/7/x"
+
+    def discover(self, client, since):
+        return [DiscoveredItem(self.address, "إخماد حريق في تول", NOW, self.slug)]
+
+    def key(self, url):
+        return url.split("/")[-2]
+
+
+def test_an_article_under_a_second_address_is_not_fetched_again(tmp_path, monkeypatch):
+    monkeypatch.setattr(pipeline, "sources_for", lambda where: [TwoAddresses()])
+    store = Store(tmp_path)
+    assert pipeline.run("github", store=store, client=object())[0]["fetched"] == 1
+    TwoAddresses.address = "https://x.test/news/lebanon-news/7/lebanon24"
+    assert pipeline.run("github", store=store, client=object())[0]["already_saved"] == 1
+    assert store.fetched("two") == {"7"}
+    store.mark_fetched("two", "https://x.test/old")  # how the list was kept before keys
+    assert pipeline.is_saved(store, TwoAddresses(), "https://x.test/old")

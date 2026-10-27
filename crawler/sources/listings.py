@@ -16,6 +16,7 @@ from crawler.sources.common import (
     clean_url,
     meta_description,
     parse_when,
+    same_words,
     slug_title,
 )
 
@@ -82,10 +83,10 @@ class NNA(Source):
         if not page.ok:
             return None
         title = re.search(r'<meta property="og:title" content="([^"]*)"', page.text)
-        lead = meta_description(page.text)
-        if not lead:
-            return None
         headline = clean_title(title.group(1)) if title else item.headline
+        lead = meta_description(page.text)
+        if not lead or same_words(lead, headline):  # NNA's own summary is sometimes broken HTML
+            return FetchedArticle(item.url, self.slug, headline, item.published_at, headline, method="headline only")
         return FetchedArticle(item.url, self.slug, headline, item.published_at, lead, method="lead only")
 
 
@@ -95,6 +96,7 @@ class Elnashra(Source):
 
     slug = "elnashra"
     where = "home"
+    body = '//div[contains(@class, "articleBody")]'
     pages = ("category/show/news/37/قضاء-وأمن", "category/show/news/20/متفرقات")
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
@@ -118,7 +120,7 @@ class Janoubia(Source):
     """WordPress: the posts API lists every article by date."""
 
     slug = "janoubia"
-    where = "home"
+    where = "home"  # the generic reader is right here; its body block also holds share buttons
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
         items = []

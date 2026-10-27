@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Literal
 
 from crawler.fetch import PoliteClient
-from crawler.sources.common import BEIRUT, article_text
+from crawler.sources.common import BEIRUT, article_text, body_text, same_words
 
 
 @dataclass(frozen=True)
@@ -30,7 +30,8 @@ class FetchedArticle:
     headline: str
     published_at: dt.datetime | None
     text: str  # private store only, never published
-    method: str = "full text"  # or "lead only" when the site gives no more without a browser
+    # or "lead only" when the site gives no more without a browser, "headline only" for a flash
+    method: str = "full text"
     fetched_at: dt.datetime = field(default_factory=lambda: dt.datetime.now(BEIRUT))
 
 
@@ -41,16 +42,31 @@ class Source(ABC):
     where: ClassVar[Literal["github", "home"]] = "github"
     source_type: ClassVar[Literal["media", "official"]] = "media"
     is_upstream: ClassVar[bool] = False
+    # Where the article text is on the outlet's pages (an XPath). Without one, a generic reader
+    # finds it — which, on some outlets, also took the menus and the lists of other headlines.
+    body: ClassVar[str | None] = None
 
     @abstractmethod
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
         """Articles published on or after `since`, from feeds, sitemaps or listing pages."""
 
+    def key(self, url: str) -> str:
+        """What the fetched list records for an article: its address, unless the outlet serves
+        one article under several addresses."""
+        return url
+
     def fetch(self, client: PoliteClient, item: DiscoveredItem) -> FetchedArticle | None:
-        """Download one article. None when the site refuses or the page has no text."""
+        """Download one article. None when the site refuses or the page has no text. A page with
+        no article body (a breaking-news flash) is kept as its headline."""
         page = client.get(item.url)
         if not page.ok:
             return None
+        if self.body:
+            text = body_text(page.text, self.body)
+            if not text or same_words(text, item.headline):
+                return FetchedArticle(item.url, self.slug, item.headline, item.published_at, item.headline,
+                                      method="headline only")
+            return FetchedArticle(item.url, self.slug, item.headline, item.published_at, text)
         text = article_text(page.text)
         if not text:
             return None

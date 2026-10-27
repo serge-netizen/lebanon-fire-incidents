@@ -10,6 +10,7 @@ from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
+import lxml.html
 import trafilatura
 
 from crawler import config
@@ -96,6 +97,41 @@ def article_text(page_html: str) -> str:
     return trafilatura.extract(page_html, include_comments=False, include_tables=True, favor_recall=True) or ""
 
 
+BLOCKS = {"p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "tr", "section", "article"}
+# Inside an article body: code, forms, embeds and advertisement blocks (Lebanon24 puts one mid-text).
+NOISE = (".//script | .//style | .//noscript | .//input | .//iframe | .//form | .//button"
+         " | .//*[contains(@class, 'Banner')]")
+
+
+def body_text(page_html: str, xpath: str) -> str:
+    """The text of the elements `xpath` selects — an outlet's article body, read without the menus,
+    log-in boxes and lists of other headlines a generic reader picks up. Empty when the page has
+    no body: a breaking-news flash, which is its headline only."""
+    lines: list[str] = []
+    for el in lxml.html.fromstring(page_html).xpath(xpath):
+        for junk in el.xpath(NOISE):
+            junk.drop_tree()
+        for node in el.iter():
+            if not isinstance(node.tag, str):  # a comment
+                continue
+            node.text = node.text and re.sub(r"\s+", " ", node.text)
+            node.tail = node.tail and re.sub(r"\s+", " ", node.tail)
+            if node.tag in BLOCKS:
+                node.text = "\n" + (node.text or "")
+            if node.tag in BLOCKS or node.tag == "br":
+                node.tail = "\n" + (node.tail or "")
+        lines += (line.strip() for line in el.text_content().split("\n"))
+    return "\n".join(line for line in lines if line)
+
+
+def same_words(a: str, b: str) -> bool:
+    """Equal once punctuation and spacing are ignored: a body that only repeats the headline."""
+    def words(t: str) -> str:
+        return " ".join(re.findall(r"\w+", t))
+    return words(a) == words(b)
+
+
 def meta_description(page_html: str) -> str:
+    """The page's own summary. Tags are removed: NNA sometimes cuts one in half ("<span s")."""
     m = re.search(r'<meta[^>]+(?:property|name)="(?:og:)?description"[^>]+content="([^"]*)"', page_html)
-    return clean_title(m.group(1)) if m else ""
+    return clean_title(re.sub(r"<[^>]*(?:>|$)", " ", html.unescape(m.group(1)))) if m else ""

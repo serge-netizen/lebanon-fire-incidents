@@ -1,9 +1,10 @@
 import datetime as dt
 
 from crawler.fetch import Page
+from crawler.sources.base import DiscoveredItem
 from crawler.sources.common import clean_url, rss_entries, slug_title
-from crawler.sources.listings import Elnashra, LebanonDebate
-from crawler.sources.sitemaps import Lebanon24
+from crawler.sources.listings import NNA, Elnashra, LebanonDebate
+from crawler.sources.sitemaps import LBCI, MTV, Lebanon24, Tayyar
 
 
 class FakeClient:
@@ -56,3 +57,48 @@ def test_lebanon24_same_story_from_sitemap_and_feed_counted_once():
             "<pubDate>Mon, 19 Oct 2026 07:12:59 GMT</pubDate></item></rss>")
     client = FakeClient({"newssitemap": sitemap, "Rss/News": feed})
     assert len(Lebanon24().discover(client, dt.date(2026, 10, 18))) == 1
+
+
+# Synthetic pages in each outlet's layout (no real article text in this repo).
+LEBANON24 = ('<html><body><nav>بحث تصفّح بدون إعلانات</nav><div itemprop="articleBody"><div><strong>'
+             'اندلع حريق في <a class="entities-links">عكار</a> مساء اليوم.<br>'
+             '<div class="MainControlDiv BannersControl_FullMainDiv"><div>Advertisement</div></div>'
+             '</strong>وعملت فرق الدفاع المدني على إخماده.</div></div><div>مواضيع ذات صلة</div></body></html>')
+FLASH = '<html><body><nav>بحث</nav><div itemprop="articleBody"><div class="MainControlDiv Banners">Advertisement</div></div></body></html>'
+LBCI_PAGE = ('<html><body><div itemprop="articleBody" class="article_details_body"><div>0<sup>min</sup></div>'
+        '<span class="d-none">حريق في صور</span><div class="ShortDesc"><h2>شب حريق في محل في صور.</h2></div>'
+        '<div class="LongDesc"><div>ولم يفد عن إصابات.</div></div><div class="ltrDisclaimerDiv">*حفاظاً على حقوق الملكية</div>'
+        '<div class="article_details_next">التالي خبر آخر</div></div></body></html>')
+
+
+def _fetch(source, page: str, headline: str):
+    return source.fetch(FakeClient(default=page), DiscoveredItem("https://x.test/news/a/1584349/x", headline, None, source.slug))
+
+
+def test_an_outlet_body_is_read_without_menus_or_advertisements():
+    article = _fetch(Lebanon24(), LEBANON24, "حريق في عكار")
+    assert article.method == "full text"
+    assert article.text == "اندلع حريق في عكار مساء اليوم.\nوعملت فرق الدفاع المدني على إخماده."
+    lbci = _fetch(LBCI(), LBCI_PAGE, "حريق في صور")
+    assert lbci.text == "شب حريق في محل في صور.\nولم يفد عن إصابات."  # no reading time, notice or next story
+
+
+def test_a_flash_with_no_body_is_kept_as_its_headline():
+    for source, page in ((Lebanon24(), FLASH), (LBCI(), LBCI_PAGE.replace("ShortDesc", "x").replace("LongDesc", "y")),
+                         (MTV(), "<html><body><div class='articles-wrapper'>invalid {{ loginErrorMessage }}</div></body></html>"),
+                         (Tayyar(), "<html><body><nav>FPM Writers</nav><div class='text '></div></body></html>")):
+        article = _fetch(source, page, "حريق في عكار")
+        assert (article.method, article.text) == ("headline only", "حريق في عكار"), source.slug
+
+
+def test_nna_summary_cut_in_half_gives_the_headline():
+    page = '<meta property="og:title" content="إخماد حريق في تول"><meta property="og:description" content="&lt;span s">'
+    article = _fetch(NNA(), page, "x")
+    assert (article.method, article.text) == ("headline only", "إخماد حريق في تول")
+    whole = page.replace("&lt;span s", "وطنية - أخمد الدفاع المدني حريقاً في تول")
+    assert _fetch(NNA(), whole, "x").text == "وطنية - أخمد الدفاع المدني حريقاً في تول"
+
+
+def test_lebanon24_key_is_the_article_number():
+    assert Lebanon24().key("https://www.lebanon24.com/news/lebanon-news/1584349/lebanon24?src=rss") == "1584349"
+    assert LBCI().key("https://x.test/a") == "https://x.test/a"

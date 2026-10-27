@@ -12,6 +12,10 @@ from crawler.fetch import PoliteClient
 from crawler.sources.base import DiscoveredItem, Source
 from crawler.sources.common import news_sitemap_entries, rss_entries
 
+# LBCI and Al Jadeed share a publishing system: the lead and the rest of the text in two blocks.
+SHORT_AND_LONG = ('//div[@itemprop="articleBody"]'
+                  '//div[contains(@class, "ShortDesc") or contains(@class, "LongDesc")]')
+
 
 class NewsSitemapSource(Source):
     sitemap: ClassVar[str]
@@ -27,16 +31,19 @@ class NewsSitemapSource(Source):
 class LBCI(NewsSitemapSource):
     slug = "lbci"
     sitemap = "https://www.lbcgroup.tv/newssitemap.xml"
+    body = SHORT_AND_LONG
 
 
 class AlJadeed(NewsSitemapSource):
     slug = "aljadeed"
     sitemap = "https://www.aljadeed.tv/newssitemap.xml"
+    body = SHORT_AND_LONG
 
 
 class MTV(NewsSitemapSource):
     slug = "mtv"
     sitemap = "https://sitemaps.mtv.com.lb/fresh/sitemap-news.xml.gz"
+    body = '//div[contains(@class, "articles-report")]'
 
 
 class Annahar(NewsSitemapSource):
@@ -47,14 +54,17 @@ class Annahar(NewsSitemapSource):
 class Tayyar(NewsSitemapSource):
     slug = "tayyar"
     sitemap = "https://www.tayyar.org/sitemap.xml"
+    body = '//div[contains(concat(" ", normalize-space(@class), " "), " text ")]'
 
 
 class Lebanon24(NewsSitemapSource):
-    """News sitemap (two to three days, every section) plus three section feeds (five weeks)."""
+    """News sitemap (two to three days, every section) plus three section feeds (five weeks). The
+    two give one article two addresses; its number identifies it."""
 
     slug = "lebanon24"
     sitemap = "https://www.lebanon24.com/newssitemap.xml"
     feeds = ("1/لبنان", "7/متفرقات", "23/أخبار-عاجلة")
+    body = '//div[@itemprop="articleBody"]'
 
     def discover(self, client: PoliteClient, since: dt.date) -> list[DiscoveredItem]:
         items = {self._id(i.url): i for i in super().discover(client, since)}
@@ -67,6 +77,9 @@ class Lebanon24(NewsSitemapSource):
                 if when.date() >= since:
                     items.setdefault(self._id(url), DiscoveredItem(url, title, when, self.slug))
         return list(items.values())
+
+    def key(self, url: str) -> str:
+        return self._id(url)
 
     @staticmethod
     def _id(url: str) -> str:

@@ -214,13 +214,23 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   NNA's Civil Defense bulletins are published minutes after the Mac reads them, not at GitHub's
   next scheduled run, which starts 3–7 hours late (§8). A call to Claude that failed (API or
   network error) is tried again on the next run; a refusal is kept for review.
+- **Readers fixed (2026-10-27), before the 12-month history.** A count of what the generic reader
+  had stored, by outlet: Lebanon24 **69 of 108** articles were the page menu (40 of them
+  breaking-news flashes, which have no body at all); LBCI **30 of 39** flashes (a reading time and
+  a copyright notice); MTV **24 of 37** began with a log-in box; Tayyar and Al Jadeed stored menus
+  and a ticker of *other* headlines (which can mislead Claude, e.g. war words from another story);
+  NNA cut its own summary in half on 4 pages ("<span s"). Each of those outlets is now read from
+  its article block (`body` in `crawler/sources/`), and a page with no body is kept as its
+  headline ("headline only", counted as "flash" in the crawl log). Annahar, Janoubia, Lebanon
+  Debate and L'Orient Today read correctly with the generic reader and keep it. The stored
+  articles of the six outlets were read again, and those whose text changed are classified again.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
   have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also
   stored the page menu instead of the article: a reader bug to fix (task 3 work).
-- **Known issue:** Lebanon24 serves one article under two addresses (sitemap and feed); across
-  runs the same story can be stored twice. Dedupe now merges the two (same headline); the
-  fetched-state key should still be the article number.
+- **Known issue, fixed 2026-10-27:** Lebanon24 serves one article under two addresses (sitemap and
+  feed), so across runs the same story was stored twice; dedupe merges the two (same headline).
+  Lebanon24's fetched list now records the article number, so a second address is not fetched.
 - Keyword patterns in a UTF-8 YAML file, tested against labelled headlines.
 - Extraction: Haiku 5.5 with structured output (`output_config.format`), one request per
   article; output is a **list** of items, each typed `incident` / `aggregate_report` / `not_a_fire`.

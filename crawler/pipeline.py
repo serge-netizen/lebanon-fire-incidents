@@ -8,6 +8,7 @@ import datetime as dt
 from crawler.fetch import PoliteClient
 from crawler.filter import census_kind, check
 from crawler.sources import sources_for
+from crawler.sources.base import Source
 from crawler.sources.common import BEIRUT
 from crawler.store import Store
 
@@ -27,6 +28,13 @@ def since_for(store: Store, slug: str, days: int, today: dt.date) -> dt.date:
     return max(start, today - dt.timedelta(days=CATCH_UP_LIMIT_DAYS - 1))
 
 
+def is_saved(store: Store, source: Source, url: str) -> bool:
+    """Already in the store: under the outlet's key, or under its address (how the list was kept
+    before 2026-10-27)."""
+    fetched = store.fetched(source.slug)
+    return source.key(url) in fetched or url in fetched
+
+
 def is_candidate(headline: str) -> bool:
     """Worth fetching: the brief's keyword filter, or a Civil Defense daily bulletin."""
     return check(headline).passes or census_kind(headline) == "tally"
@@ -41,7 +49,8 @@ def run(where: str, days: int = 3, max_fetch: int = 150, store: Store | None = N
     for source in sources_for(where):
         since = since_for(store, source.slug, days, today)
         report = {"source": source.slug, "since": since.isoformat(), "discovered": 0, "candidates": 0,
-                  "already_saved": 0, "fetched": 0, "failed": 0, "left_for_next_run": 0, "error": None}
+                  "already_saved": 0, "fetched": 0, "headline_only": 0, "failed": 0, "left_for_next_run": 0,
+                  "error": None}
         try:
             items = source.discover(client, since)
         except Exception as e:  # noqa: BLE001 — one blocked or changed site must not stop the others; recorded below
@@ -50,7 +59,7 @@ def run(where: str, days: int = 3, max_fetch: int = 150, store: Store | None = N
             reports.append(report)
             continue
         candidates = [i for i in items if is_candidate(i.headline)]
-        todo = sorted((i for i in candidates if i.url not in store.fetched(source.slug)),
+        todo = sorted((i for i in candidates if not is_saved(store, source, i.url)),
                       key=lambda i: i.published_at or dt.datetime.max.replace(tzinfo=BEIRUT))
         report.update(discovered=len(items), candidates=len(candidates), already_saved=len(candidates) - len(todo))
         for item in todo[:max_fetch]:
@@ -59,8 +68,9 @@ def run(where: str, days: int = 3, max_fetch: int = 150, store: Store | None = N
                 report["failed"] += 1  # not marked: tried again next run
                 continue
             store.save(article)
-            store.mark_fetched(source.slug, item.url)
+            store.mark_fetched(source.slug, source.key(item.url))
             report["fetched"] += 1
+            report["headline_only"] += article.method == "headline only"
         left = todo[max_fetch:]
         report["left_for_next_run"] = len(left)
         resume = min((i.published_at.date() for i in left if i.published_at), default=None)
@@ -71,7 +81,9 @@ def run(where: str, days: int = 3, max_fetch: int = 150, store: Store | None = N
 
 def print_reports(reports: list[dict]) -> None:
     """Counts only: GitHub job logs are public."""
-    print(f"{'source':14} {'since':10} {'found':>6} {'cand.':>5} {'saved':>5} {'new':>4} {'fail':>4} {'left':>4}  error")
+    print(f"{'source':14} {'since':10} {'found':>6} {'cand.':>5} {'saved':>5} {'new':>4} {'flash':>5} {'fail':>4} "
+          f"{'left':>4}  error")
     for r in reports:
         print(f"{r['source']:14} {r['since']:10} {r['discovered']:>6} {r['candidates']:>5} {r['already_saved']:>5} "
-              f"{r['fetched']:>4} {r['failed']:>4} {r['left_for_next_run']:>4}  {r['error'] or ''}")
+              f"{r['fetched']:>4} {r.get('headline_only', 0):>5} {r['failed']:>4} {r['left_for_next_run']:>4}  "
+              f"{r['error'] or ''}")
