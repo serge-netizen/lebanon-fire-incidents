@@ -14,6 +14,8 @@ Rules, in the order they bite:
 5. **Infer upward only.** Several candidates (homonyms, several villages, a village and a district
    that does not contain it) resolve to their lowest common unit; nothing is ever pushed down.
 6. **A blank is an answer.** No known name → precision "unknown", never a guess.
+7. **A direction is not a place** (2026-10-27). What follows "باتجاه" or "نحو" is where a road
+   leads: "نفق حامات باتجاه طرابلس" is the Hamat tunnel, not Tripoli.
 """
 
 from __future__ import annotations
@@ -87,6 +89,7 @@ CUES_TOWN = {"بلده", "قريه", "منطقه", "حي", "محله", "خراج
 CUES_DISTRICT = {"قضاء", "caza", "kaza", "qada", "district"}
 CUES_GOVERNORATE = {"محافظه", "governorate", "mohafaza", "muhafaza"}
 CUE_UNION = ("اتحاد", "بلديات")  # "اتحاد بلديات X": a union of municipalities, never one village
+DIRECTION = {"باتجاه", "اتجاه", "نحو", "towards", "toward", "vers"}  # rule 7: the rest is not the place
 
 
 @dataclass(frozen=True)
@@ -196,6 +199,7 @@ class Resolution:
 
 def _find_matches(text: str, g: Gazetteer) -> list[Match]:
     tokens = _tokens(text)
+    tokens = tokens[:next((i for i, (w, _) in enumerate(tokens) if w in DIRECTION), len(tokens))]
     words = [w for w, _ in tokens]
     matches, i = [], 0
     while i < len(words):

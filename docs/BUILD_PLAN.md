@@ -87,6 +87,9 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   because each one has to be true — volume will come from task 3's real place strings._
 - Nine governorates (owner's decision 2026-10-22): Keserwan-Jbeil applied over OCHA's eight from
   `governorates.csv`, as code `LBKJ`; OCHA's own assignment kept as `ocha_adm1_pcode`.
+- **2026-10-27, from the first reports read in full:** rule 7, a direction is not a place
+  ("نفق حامات باتجاه طرابلس" is the Hamat tunnel, not Tripoli); alias "دبعال" for Debaal (Tyre
+  district), `proposed`. 38 real place strings in the done test.
 
 ### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
 - **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources

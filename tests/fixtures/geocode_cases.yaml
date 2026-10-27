@@ -127,3 +127,11 @@
 - text: "توقيف مطلوب في برقايل - عكار"
   source: L24 2026-10
   expect: {precision: village, pcode: "35314"}
+- text: "نفق حامات باتّجاه طرابلس"
+  source: L24 (2026-10-18)
+  expect: {precision: village, pcode: "34287"}
+  why: Tripoli is where the road leads, not where the fire was
+- text: "بلدة دبعال الجنوبية"
+  source: L24 (2026-10-20)
+  expect: {precision: village, pcode: "62212"}
+  why: Debaal (Tyre district), written with an alif
