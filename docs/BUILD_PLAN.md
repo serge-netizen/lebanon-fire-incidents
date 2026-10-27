@@ -90,7 +90,14 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   `governorates.csv`, as code `LBKJ`; OCHA's own assignment kept as `ocha_adm1_pcode`.
 - **2026-10-27, from the first reports read in full:** rule 7, a direction is not a place
   ("نفق حامات باتجاه طرابلس" is the Hamat tunnel, not Tripoli); alias "دبعال" for Debaal (Tyre
-  district), `proposed`. 38 real place strings in the done test.
+  district), `proposed`. 39 real place strings in the done test.
+- **2026-10-27, from the history check:** OCHA adds the district to 122 village names shared by
+  several places ("الخرائب صيدا"), but the press writes the bare name ("الخرايب"), which resolved to
+  the one village OCHA lists bare — the wrong one for the southern Kharayeb. 70 bare names are now
+  aliases of their villages (`proposed`), so a bare name shared by several villages resolves to
+  what they share unless the text names the district; two more for "يحمر الشقيف" and "يحمر
+  البقاع". Left out, _chosen_: 35 bare forms that are ordinary words or mean something else in the
+  press (حريق، راس، وادي، الجديدة، الحمرا…).
 
 ### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
 - **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources
@@ -225,8 +232,10 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   and a ticker of *other* headlines (which can mislead Claude, e.g. war words from another story);
   NNA cut its own summary in half on 4 pages ("<span s"). Each of those outlets is now read from
   its article block (`body` in `crawler/sources/`), and a page with no body is kept as its
-  headline ("headline only", counted as "flash" in the crawl log). Annahar, Janoubia, Lebanon
-  Debate and L'Orient Today read correctly with the generic reader and keep it. The stored
+  headline ("headline only", counted as "flash" in the crawl log). Janoubia, Lebanon Debate and
+  L'Orient Today read correctly with the generic reader and keep it. _Added the same evening:_
+  Annahar, whose pages carry a "most read" column of other stories (140 of 771 stored articles had
+  it, found in the history check through false "war words" flags); its 771 articles were read again. The stored
   articles of the six outlets were read again, and those whose text changed are classified again.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which

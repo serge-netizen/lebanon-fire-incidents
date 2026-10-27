@@ -49,6 +49,9 @@ class MTV(NewsSitemapSource):
 class Annahar(NewsSitemapSource):
     slug = "annahar"
     sitemap = "https://www.annahar.com/sitemap/sitemap-news.xml"
+    # The lead and the article column; not the "most read" column beside it (2026-10-27).
+    body = ('//div[contains(@class, "newsSection")]//div[contains(@class, "description")]'
+            ' | //div[contains(@class, "newsSection")]//div[contains(@class, "firstColumn")]')
 
     def archive(self, client: PoliteClient, first: dt.date, last: dt.date) -> list[DiscoveredItem]:
         """One sitemap per month, headlines included, back to 2019."""

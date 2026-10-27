@@ -83,6 +83,15 @@ def test_an_outlet_body_is_read_without_menus_or_advertisements():
     assert lbci.text == "شب حريق في محل في صور.\nولم يفد عن إصابات."  # no reading time, notice or next story
 
 
+def test_annahar_reads_its_article_column_not_the_most_read_one():
+    page = ('<html><body><div class="newsSection"><div class="topSection"><h1>حريق في جونيه</h1>'
+            '<div class="description">احترق باص على طريق جونيه.</div></div><div class="listingHolder row">'
+            '<div class="firstColumn col-lg-9">وأدى الحريق إلى زحمة سير.</div><div class="secondColumn col-lg-3">'
+            'الأكثر قراءة غارة إسرائيلية على الجنوب</div></div></div><div class="readMoreSection">اقرأ في النهار</div>'
+            '</body></html>')
+    assert _fetch(Annahar(), page, "حريق في جونيه").text == "احترق باص على طريق جونيه.\nوأدى الحريق إلى زحمة سير."
+
+
 def test_a_flash_with_no_body_is_kept_as_its_headline():
     for source, page in ((Lebanon24(), FLASH), (LBCI(), LBCI_PAGE.replace("ShortDesc", "x").replace("LongDesc", "y")),
                          (MTV(), "<html><body><div class='articles-wrapper'>invalid {{ loginErrorMessage }}</div></body></html>"),

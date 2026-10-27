@@ -117,3 +117,11 @@ def test_a_village_carries_its_parents_and_centre():
     r = resolve("في بلدة زبود – قضاء بعلبك")
     assert r.admin3["pcode"] == "53237" and r.admin2["pcode"] == "LB21" and r.admin1["pcode"] == "LB8"
     assert 33 < r.lat < 35 and 35 < r.lon < 37
+
+
+def test_a_bare_name_ocha_writes_with_its_district_is_shared():
+    """OCHA writes "الخرائب صيدا" and "الخرائب" (Hermel); the press writes the bare name."""
+    assert resolve("بلدة الخرايب").ambiguous and resolve("بلدة الخرايب").precision == "unknown"
+    assert resolve("الخرايب - قضاء صيدا").pcode == "61419"
+    assert resolve("بلدة يحمر الشقيف").pcode == "71394"  # its region tells it apart
+    assert resolve("برمانا").pcode == "22611"  # a name only OCHA's form carried

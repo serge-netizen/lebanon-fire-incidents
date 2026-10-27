@@ -135,3 +135,7 @@
   source: L24 (2026-10-20)
   expect: {precision: village, pcode: "62212"}
   why: Debaal (Tyre district), written with an alif
+- text: "حريق في محيط بلدة الخرايب من دون تسجيل أي حدث أمني"
+  source: NNA (2026-06-13, history)
+  expect: {precision: unknown, ambiguous: true}
+  why: two villages are called Kharayeb (Saida and Hermel; OCHA adds the district to the Saida one) and the text names neither district
