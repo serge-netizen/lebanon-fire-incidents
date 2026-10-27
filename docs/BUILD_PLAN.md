@@ -198,6 +198,11 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
     articles rarely state. A new reported field, `property_damage` (none / damaged / not stated),
     carries damage stated in words ("اقتصرت الأضرار على الماديات") when there are no figures.
   - Responders moved into the lists, with Arabic cue words. Instructions v5.
+- **Fourth run, instructions v5 (2026-10-27):** 108 articles for **$0.174** (two runs: the job's
+  default cap of 100 applies when the limit is left empty — give a number), 27 reports → **17
+  fires** (11 in scope, 6 war-related). Workbook: `private/review/2026-10-27-third-batch.xlsx`.
+  Known gap: a place the map does not know ("منطقة الحوش") does not merge with a report that
+  names it inside a longer place (two war-related reports of one fire) — next dedupe rule.
 - **Thin text (found 2026-10-23):** of the 20 reports, **17 gave Claude only a headline or one
   line**: NNA by design (its lead only, §8), and Lebanon24 and LBCI "breaking news" flashes, which
   have no body. That is why so much is "not established". About 11 regular Lebanon24 pages also
