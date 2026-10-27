@@ -309,6 +309,14 @@ run that times out picks up where it stopped. Sanity plot of monthly counts.
   addresses a month to open one by one); Al Jadeed and Tayyar have none; Lebanon Debate's pages
   stop going back; Elnashra has none (the Internet Archive lists some of its addresses — a later
   option). Most of their local news comes from NNA, which is read.
+- **First runs (2026-10-27 evening):** Annahar, Janoubia and L'Orient Today complete for the 12
+  months; NNA 22 weeks of 48 (newest first: back to late April). Found 2,400 articles in the store
+  after the runs, of which 718 fire stories classified for **$1.19**; Annahar's 375 classified again
+  after its reader was fixed (**$0.62**). Result so far: 296 reports → **192 fires (143 in scope, 49
+  war-related)**, most from June to September — the months NNA has covered so far, and the
+  season. My reading of a random sample of 15: the problems were the Annahar column (fixed) and
+  the bare village names (fixed); one fire whose site looks wrong (trees beside a power line given
+  "electricity network", low confidence, flagged).
 
 ### Task 7 — Site v1
 **Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML
