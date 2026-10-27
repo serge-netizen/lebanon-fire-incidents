@@ -51,10 +51,19 @@ def test_what_must_match():
     assert merged(report("a", site_primary="orchard"), report("b", site_primary="forest")) == [["a", "b"]]  # both outdoors
 
 
-def test_places_not_found_merge_only_on_the_same_headline():
+def test_places_not_found_merge_on_the_same_headline_or_a_name_one_contains():
     same = merged(report("a", (), headline="حريق سيارة في الجنوب"), report("b", (), headline="حريق سيارة في الجنوب!"))
     assert same == [["a", "b"]]
-    assert merged(report("a", ()), report("b", ())) == [["a"], ["b"]]
+    assert merged(report("a", (), place_text="وادي الخنازير"), report("b", (), place_text="منطقة الحوش")) == [["a"], ["b"]]
+    hawsh = report("a", (), place_text="منطقة الحوش", site_primary="not_established")
+    inside = report("b", ("LB7", "LB72", "LB72005"), place_text="منطقة الحوش بين برج الملوك وسهل مرجعيون")
+    assert merged(hawsh, inside) == [["a", "b"]]
+    assert merged(hawsh, report("c", SAIDA_CITY, place_text="مكب النفايات في صيدا")) == [["a"], ["c"]]
+    south = report("d", (), place_text="في الجنوب")
+    south.place.matched.append("جنوب")  # a name the map knows, but two governorates: too broad to merge on
+    assert merged(south, report("e", SAIDA_CITY, place_text="صيدا في الجنوب")) == [["d"], ["e"]]
+    assert "place too broad to map" in dedupe.merge([south]).flags
+    assert "place not found in the gazetteer" in dedupe.merge([hawsh]).flags
 
 
 def test_a_chain_of_near_matches_never_merges_two_fires():

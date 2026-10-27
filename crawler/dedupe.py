@@ -7,8 +7,9 @@ Rule v1 (2026-10-23). Two reports are the same fire when all of these hold:
   article gives none. The brief said 36 hours; two days because most articles give no fire
   date, and dumps and forests burn for days;
 - their places nest at district level or finer (Saida city inside Saida district); a place found
-  only at governorate level matches only the same governorate. Two places the gazetteer could not
-  find match only when the headline is the same (one article published twice);
+  only at governorate level matches only the same governorate. A place the gazetteer does not
+  know matches a report whose place names it ("منطقة الحوش" in "منطقة الحوش بين برج الملوك وسهل
+  مرجعيون", 2026-10-27), or one with the same headline (one article published twice);
 - their sites agree: a shared site category, or one not established, or both outdoors.
 A report joins a group only if it matches every report already in it, so a chain of near-matches
 never merges two different fires.
@@ -25,13 +26,16 @@ from crawler import taxonomy as tx
 from crawler.derive import IN_SCOPE, WAR, scope
 from crawler.extract import MAX_OTHERS, PROMPT_VERSION
 from crawler.filter import fold, war_words
-from crawler.geocode import Resolution, resolve
+from crawler.geocode import CUES_TOWN, Resolution, normalise, resolve
 from crawler.store import Store
 
 WINDOW_DAYS = 2
 OUTDOOR = {"waste_sites", "natural_areas", "agricultural", "public_spaces"}
 DAMAGES = ("deaths", "injuries", "smoke_inhalation", "buildings_burned", "vehicles_burned", "area_burned_m2", "displaced")
 PRECISION = {"village": 0, "district": 1, "governorate": 2, "unknown": 3}
+# Words that frame a place rather than name it, normalised as the gazetteer normalises names.
+FRAME = CUES_TOWN | {normalise(w) for w in ("طريق", "اوتوستراد", "مدخل", "محيط", "جوار", "قرب", "بالقرب", "في",
+                                            "على", "عند", "بين", "من")}
 
 
 @dataclass
@@ -123,6 +127,16 @@ def _places_nest(a: Resolution, b: Resolution) -> bool:
     return coarse.pcode in _chain(fine)
 
 
+def _named_inside(a: Report, b: Report) -> bool:
+    """`a`'s place is a name the gazetteer does not know at all, and `b`'s place text contains it.
+    A name it knows but cannot place ("the South": two governorates) is not enough."""
+    if a.place.matched:
+        return False
+    core = [w for w in normalise(a.item["place_text"] or "").split() if w not in FRAME]
+    words = normalise(b.item["place_text"] or "").split()
+    return bool(core) and any(words[i:i + len(core)] == core for i in range(len(words) - len(core) + 1))
+
+
 def _sites_agree(a: dict, b: dict) -> bool:
     category = tx.site_category()
     ca = {category[s] for s in (a["site_primary"], *a["site_others"])} - {tx.NOT_ESTABLISHED}
@@ -135,8 +149,8 @@ def _sites_agree(a: dict, b: dict) -> bool:
 def same_fire(a: Report, b: Report) -> bool:
     if a.raw_ref == b.raw_ref or abs((a.date - b.date).days) > WINDOW_DAYS:
         return False
-    places = _places_nest(a.place, b.place) or (
-        not (a.place.pcode and b.place.pcode) and _headline(a.headline) == _headline(b.headline))
+    places = _places_nest(a.place, b.place) or (not (a.place.pcode and b.place.pcode) and (
+        _headline(a.headline) == _headline(b.headline) or _named_inside(a, b) or _named_inside(b, a)))
     return places and _sites_agree(a.item, b.item)
 
 
@@ -202,7 +216,7 @@ def merge(group_: list[Report]) -> Incident:
         flags.append("munitions named as a possible cause: war-related?")
     place = reports[0].place
     if not place.pcode:
-        flags.append("place not found in the gazetteer")
+        flags.append("place too broad to map" if place.matched else "place not found in the gazetteer")
     elif place.ambiguous:
         flags.append("place name shared by several places")
     elif place.conflict:

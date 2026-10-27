@@ -203,7 +203,7 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   default cap of 100 applies when the limit is left empty — give a number), 27 reports → **17
   fires** (11 in scope, 6 war-related). Workbook: `private/review/2026-10-27-third-batch.xlsx`.
   Known gap: a place the map does not know ("منطقة الحوش") does not merge with a report that
-  names it inside a longer place (two war-related reports of one fire) — next dedupe rule.
+  names it inside a longer place (two war-related reports of one fire) — _fixed 2026-10-27, task 5._
 - **The owner's answers (2026-10-27).** The third workbook is right apart from what he had already
   pointed out (the one left: a fire listed twice, the al-Hawsh gap above). Order of work: the
   12-month history first, then the published data, then the site. Review by e-mail (task 5). The
@@ -247,7 +247,12 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 - **Dedupe v1 built early (2026-10-23, `crawler/dedupe.py`).** Two reports are the same fire when
   they come from different articles, their dates are at most **two days** apart (_chosen_: the
   brief's 36 hours is too tight when most articles give no fire date and dumps and forests burn for
-  days), their places nest at district level or finer, and their sites agree. A report joins a
+  days), their places nest at district level or finer, and their sites agree. **Added 2026-10-27:**
+  a place the gazetteer does not know at all matches a report whose place text names it ("منطقة
+  الحوش" inside "منطقة الحوش بين برج الملوك وسهل مرجعيون"); a name it knows but cannot place ("the
+  South", two governorates) is not enough. No alias was added for the places left off the map:
+  al-Hawsh is the name of many places, Dahr el-Baidar sits on the Aley–Zahle boundary, and I do not
+  know Wadi al-Khanazir's district for certain — a guess would put fires in the wrong district. A report joins a
   group only if it matches every report in it, so near-matches never chain two fires together.
   Conflicting counts or origins are flagged for review. Still to do: official values win on
   conflict (task 8), and a stable incident id.

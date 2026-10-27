@@ -71,7 +71,7 @@ def _question(record: dict, kind: str, label: Callable[[str], str], deduced: Ded
 
 def _location(r: Resolution, as_written: str | None) -> str:
     parts = [u["name_en"] for u in (r.admin3, r.admin2, r.admin1) if u]
-    found = " · ".join(parts) if parts else "not found on the map"
+    found = " · ".join(parts) if parts else "too broad to map" if r.matched else "not found on the map"
     return f"{found}\nas written: {as_written}" if as_written else found
 
 
