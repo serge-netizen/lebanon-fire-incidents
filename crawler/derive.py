@@ -55,7 +55,9 @@ def site_label(code: str) -> str:
 
 
 def site(record: dict) -> Deduced | None:
-    if not _open(record, "site"):
+    """The main site, when the article names none — it may still name places the fire reached or
+    was next to (the school beside the burning land): those stay reported, as other sites."""
+    if record["site_primary"] != tx.NOT_ESTABLISHED:
         return None
     category = tx.lists()["site_from_material"].get(record["material_primary"])
     if category:

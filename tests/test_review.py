@@ -2,7 +2,7 @@ import json
 
 from openpyxl import load_workbook
 
-from crawler import review
+from crawler import derive, review
 from crawler.extract import PROMPT_VERSION
 from crawler.store import Store
 
@@ -56,7 +56,17 @@ def test_workbook_has_one_row_per_fire(tmp_path):
     assert [c.value for c in wb["Articles"]["A"]][1:] == ["F1", "F1", "W1"]
 
 
+def test_a_place_beside_the_fire_stays_reported_under_a_deduced_main_site():
+    record = {"site_primary": "not_established", "site_others": ["education"], "material_primary": "dry_grass_weeds",
+              "material_others": []}
+    text = review._question(record, "site", derive.site_label, derive.site(record))
+    assert text == ("Natural areas\n— deduced from what burned (Dry grass and weeds)\n"
+                    "also: School, university or nursery — reported")
+
+
 def test_a_cause_the_article_does_not_settle_is_shown_as_possible():
     record = {"hazard_primary": "not_established", "hazard_others": ["munitions_explosives", "vehicle_fault"]}
     text = review._question(record, "hazard", lambda c: c, None)
     assert text == "not established (possible: munitions_explosives; vehicle_fault)\n— reported"
+    settled = record | {"hazard_primary": "battery_solar", "hazard_others": ["open_burning"]}
+    assert review._question(settled, "hazard", lambda c: c, None) == "battery_solar (also: open_burning)\n— reported"
