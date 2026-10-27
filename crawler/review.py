@@ -58,8 +58,9 @@ def _question(record: dict, kind: str, label: Callable[[str], str], deduced: Ded
     """One answer: reported (the main value, then the others), else deduced (with what it was
     deduced from), else not established."""
     primary, others = record[f"{kind}_primary"], [label(c) for c in record[f"{kind}_others"]]
-    # other values: for a hazard, causes the article names without settling; else places or things also named
-    named = f"{'possible' if kind == 'hazard' else 'also'}: {'; '.join(others)}" if others else ""
+    # other values; with no main hazard, they are causes the article names without settling
+    unsettled = kind == "hazard" and primary == tx.NOT_ESTABLISHED
+    named = f"{'possible' if unsettled else 'also'}: {'; '.join(others)}" if others else ""
     if primary != tx.NOT_ESTABLISHED:
         return label(primary) + (f" ({named})" if named else "") + "\n— reported"
     if deduced:

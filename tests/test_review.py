@@ -68,3 +68,5 @@ def test_a_cause_the_article_does_not_settle_is_shown_as_possible():
     record = {"hazard_primary": "not_established", "hazard_others": ["munitions_explosives", "vehicle_fault"]}
     text = review._question(record, "hazard", lambda c: c, None)
     assert text == "not established (possible: munitions_explosives; vehicle_fault)\n— reported"
+    settled = record | {"hazard_primary": "battery_solar", "hazard_others": ["open_burning"]}
+    assert review._question(settled, "hazard", lambda c: c, None) == "battery_solar (also: open_burning)\n— reported"
