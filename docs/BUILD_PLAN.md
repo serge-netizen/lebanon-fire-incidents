@@ -98,6 +98,14 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   what they share unless the text names the district; two more for "يحمر الشقيف" and "يحمر
   البقاع". Left out, _chosen_: 35 bare forms that are ordinary words or mean something else in the
   press (حريق، راس، وادي، الجديدة، الحمرا…).
+- **2026-10-28, from the whole year:** rule 8, the district or governorate a text names holds its
+  places: a village named outside it is left out when another named village lies inside it ("محلة
+  العين" near Andaqt, Akkar, is not Aain in Baalbek), and with "قضاء"/"محافظة" and no village
+  inside, that unit is the answer; both are flagged. 17 aliases (`proposed`; "شدرا" left out: there
+  is one in Akkar and one in Jezzine). 49 real place strings in the done test; 152 aliases, 111 of
+  them `proposed`. Of the year's 208 fires, 33 are not on the map: highways, Beirut quarters, broad
+  areas, and spellings still unknown ("طيردبا", "زوق مصبح", a rare hamza form "ٲ" the normaliser
+  does not fold yet).
 
 ### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
 - **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources
@@ -267,6 +275,10 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   al-Hawsh is the name of many places, Dahr el-Baidar sits on the Aley–Zahle boundary, and I do not
   know Wadi al-Khanazir's district for certain — a guess would put fires in the wrong district. A report joins a
   group only if it matches every report in it, so near-matches never chain two fires together.
+  **Added 2026-10-28:** a factory whose product is not stated agrees with any factory the lists
+  name "معمل …" (three fires of the year were counted twice: Beddawi, Hrayshe, Mkalles). Still
+  counted twice, for the review: reports that name different towns for one fire (the Anfeh
+  factory fire, called "the Chekka fire" by one article) or different sites (factory and warehouse).
   Conflicting counts or origins are flagged for review. Still to do: official values win on
   conflict (task 8), and a stable incident id.
 - The published schema (`crawler/schema/incident.schema.json`) still has §6's `property_class` and
@@ -279,8 +291,9 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   - **Built 2026-10-27 (`crawler/notify.py`), switched off until the owner creates three secrets:**
     `MAIL_USERNAME` and `MAIL_PASSWORD` (a sending account and its app password) and `MAIL_TO` (the
     review address; a secret, so it never shows in this public repo or its logs). A step of every
-    crawl. Every fire keeps a number (`state/fires.json`, F-1, F-2…) that the reply can quote. A
-    fire is e-mailed once, when it is in scope and happened in the last 7 days (_chosen_): the
+    crawl. Every fire keeps a number (`state/fires.json`, F-1, F-2…) that the reply can quote; a
+    number goes to one fire only (2026-10-28: when a new article split a fire, both parts had kept
+    its number, and the second would never have been e-mailed). A fire is e-mailed once, when it is in scope and happened in the last 7 days (_chosen_): the
     12-month history goes to the reviewer as one workbook. War-related fires are not e-mailed.
     The e-mail is the workbook row: the nine answers, reported in bold, deduced with what they
     were deduced from. Draft approved by the owner: pending (sent 2026-10-27).
@@ -317,6 +330,13 @@ run that times out picks up where it stopped. Sanity plot of monthly counts.
   season. My reading of a random sample of 15: the problems were the Annahar column (fixed) and
   the bare village names (fixed); one fire whose site looks wrong (trees beside a power line given
   "electricity network", low confidence, flagged).
+- **Complete (2026-10-28 evening):** NNA's 48 weeks done on the Mac's evening run; every source's
+  12 months read. 1,028 fire stories classified: **$1.71** for the results kept, **about $2.40** in
+  all with the runs done again (Annahar's reader, older instructions). From 1 Nov 2025 to 28 Oct
+  2026: 422 reports → **208 fires in scope** and 65 war-related (logged, not shown). The monthly
+  counts (the sanity plot is the draft page's chart): November 2025 the most (49), then August 2026
+  (35); 75% from June to November. NNA's reports run without a gap through September and October.
+  Not yet reviewed by a person.
 
 ### Task 7 — Site v1
 **Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML
