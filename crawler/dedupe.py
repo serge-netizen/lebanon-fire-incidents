@@ -10,7 +10,9 @@ Rule v1 (2026-10-23). Two reports are the same fire when all of these hold:
   only at governorate level matches only the same governorate. A place the gazetteer does not
   know matches a report whose place names it ("منطقة الحوش" in "منطقة الحوش بين برج الملوك وسهل
   مرجعيون", 2026-10-27), or one with the same headline (one article published twice);
-- their sites agree: a shared site category, or one not established, or both outdoors.
+- their sites agree: a shared site category, or one not established, or both outdoors, or a
+  factory whose product is not stated and a factory that names it ("معمل" and "معمل للبطاريات"
+  in Beddawi, 2026-10-28).
 A report joins a group only if it matches every report already in it, so a chain of near-matches
 never merges two different fires.
 """
@@ -31,6 +33,9 @@ from crawler.store import Store
 
 WINDOW_DAYS = 2
 OUTDOOR = {"waste_sites", "natural_areas", "agricultural", "public_spaces"}
+# The factories the taxonomy names "معمل …"; a bare "معمل" (factory_unspecified) may be any of them.
+FACTORIES = {"factory_unspecified", "chemicals_plastics", "recycling", "metal", "building_materials", "food_processing",
+             "textile_clothing", "furniture_wood", "printing_packaging"}
 DAMAGES = ("deaths", "injuries", "smoke_inhalation", "buildings_burned", "vehicles_burned", "area_burned_m2", "displaced")
 PRECISION = {"village": 0, "district": 1, "governorate": 2, "unknown": 3}
 # Words that frame a place rather than name it, normalised as the gazetteer normalises names.
@@ -145,9 +150,11 @@ def _named_inside(a: Report, b: Report) -> bool:
 
 def _sites_agree(a: dict, b: dict) -> bool:
     category = tx.site_category()
-    ca = {category[s] for s in (a["site_primary"], *a["site_others"])} - {tx.NOT_ESTABLISHED}
-    cb = {category[s] for s in (b["site_primary"], *b["site_others"])} - {tx.NOT_ESTABLISHED}
+    sa, sb = {a["site_primary"], *a["site_others"]}, {b["site_primary"], *b["site_others"]}
+    ca, cb = {category[s] for s in sa} - {tx.NOT_ESTABLISHED}, {category[s] for s in sb} - {tx.NOT_ESTABLISHED}
     if not ca or not cb or ca & cb:
+        return True
+    if ("factory_unspecified" in sa and sb & FACTORIES) or ("factory_unspecified" in sb and sa & FACTORIES):
         return True
     return category[a["site_primary"]] in OUTDOOR and category[b["site_primary"]] in OUTDOOR
 

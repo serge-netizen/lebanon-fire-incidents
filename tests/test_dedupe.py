@@ -2,6 +2,7 @@ import datetime as dt
 import json
 
 from crawler import dedupe
+from crawler import taxonomy as tx
 from crawler.dedupe import Report
 from crawler.extract import PROMPT_VERSION
 from crawler.geocode import Resolution
@@ -49,6 +50,16 @@ def test_what_must_match():
     assert merged(report("a", day=1), report("b", day=4)) == [["a"], ["b"]]  # three days apart
     assert merged(report("a", site_primary="house"), report("b", site_primary="forest")) == [["a"], ["b"]]
     assert merged(report("a", site_primary="orchard"), report("b", site_primary="forest")) == [["a", "b"]]  # both outdoors
+
+
+def test_a_factory_whose_product_is_not_stated_is_any_factory():
+    assert merged(report("a", site_primary="factory_unspecified"), report("b", site_primary="recycling")) == [["a", "b"]]
+    assert merged(report("a", site_primary="chemicals_plastics"),
+                  report("b", site_primary="house", site_others=["factory_unspecified"])) == [["a", "b"]]
+    assert merged(report("a", site_primary="factory_unspecified"), report("b", site_primary="quarry")) == [["a"], ["b"]]
+    assert merged(report("a", site_primary="factory_unspecified"), report("b", site_primary="warehouse")) == [["a"], ["b"]]
+    assert merged(report("a", site_primary="recycling"), report("b", site_primary="food_processing")) == [["a"], ["b"]]
+    assert dedupe.FACTORIES <= set(tx.site_ids())
 
 
 def test_places_not_found_merge_on_the_same_headline_or_a_name_one_contains():
