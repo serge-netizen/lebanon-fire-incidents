@@ -30,6 +30,7 @@ def test_there_are_at_least_30_real_cases():
 @pytest.mark.parametrize("a,b", [
     ("سنّ الفيل", "سن الفيل"),            # shadda
     ("إهدن", "اهدن"),                      # hamza under alef
+    ("ٲبو الٲسود", "أبو الأسود"),          # wavy hamza (NNA 2026-05-16)
     ("زحلة", "زحله"),                      # taa marbuta
     ("النبطية الفوقا", "نبطية الفوقا"),    # article dropped by OCHA
     ("كفررمان", "كفر رمان"),               # كفر spacing

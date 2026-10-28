@@ -106,6 +106,10 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   them `proposed`. Of the year's 208 fires, 33 are not on the map: highways, Beirut quarters, broad
   areas, and spellings still unknown ("طيردبا", "زوق مصبح", a rare hamza form "ٲ" the normaliser
   does not fold yet).
+- **2026-10-29:** the wavy hamza "ٲ"/"ٳ" folds to "ا"; 5 aliases (`proposed`: "طيردبا", "زوق
+  مصبح", "زوق مكايل", "وادي فعرة", and "إقليم الخروب" → the Chouf district). Left out, on purpose:
+  "بكيفا" (one in the Chouf, one in Rashaya) and "الخرايب" (OCHA's only Kharayeb are in Baalbek
+  and Keserwan, the press's is near Saida). 53 real place strings; 157 aliases, 116 `proposed`.
 
 ### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
 - **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources

@@ -176,3 +176,16 @@
   source: NNA 2026-08-26, place text
   expect: {precision: district, pcode: "LB52", ambiguous: true}
   why: OCHA has Tannourine's two halves; the press names the town
+- text: "بلدة طيردبا"
+  source: NNA 2025-11-01, place text
+  expect: {precision: village, pcode: "62253"}
+- text: "أوتوستراد زوق مصبح"
+  source: NNA 2025-11-08, place text
+  expect: {precision: village, pcode: "25126"}
+- text: "إقليم الخروب"
+  source: NNA 2025-11-11, place text
+  expect: {precision: district, pcode: "LB33"}
+  why: a region of the Chouf, not a cadastral area
+- text: "وادي فعرة"
+  source: NNA 2026-06-27, place text
+  expect: {precision: village, pcode: "54151"}
