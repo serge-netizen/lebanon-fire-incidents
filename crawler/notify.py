@@ -6,7 +6,7 @@ to one fire only: when a new article splits a numbered fire in two, the number s
 part that has most of its reports (the older part on a tie) and the other part takes a new one
 (2026-10-28: both parts kept it, and the second would never have been e-mailed). A fire is
 e-mailed once, when it is in scope (war-related fires are logged, not shown, not e-mailed) and
-happened in the last week: the 12-month history goes to the reviewer as a workbook, not as
+happened in the last week: the history goes to the reviewer as a workbook, not as
 hundreds of e-mails. The e-mail answers the nine questions as the review workbook does
 (review.fire_row), lists the articles, and asks for a reply.
 

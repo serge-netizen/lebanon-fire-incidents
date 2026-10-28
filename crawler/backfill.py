@@ -1,4 +1,5 @@
-"""The last 12 months (task 6; owner's decision 2026-10-22), read from each outlet's archive.
+"""The last two years (task 6; owner: 12 months on 2026-10-22, one more on 2026-10-29), read from
+each outlet's archive.
 
 Newest first, a stretch of days at a time (`Source.archive_days`: a week for NNA, whose archive
 is one list per category per day; a month elsewhere), for each source with a readable archive
@@ -26,7 +27,7 @@ from crawler.sources.base import DiscoveredItem, Source
 from crawler.sources.common import BEIRUT
 from crawler.store import Store
 
-DAYS = 365  # owner, 2026-10-22: the last 12 months
+DAYS = 730  # owner: the last 12 months (2026-10-22), then one more year (2026-10-29)
 TRIES = 3   # chosen: a page that fails three runs in a row is given up
 
 

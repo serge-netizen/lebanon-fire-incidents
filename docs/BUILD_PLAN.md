@@ -304,7 +304,8 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
 ### Task 6 — Tier 2 + backfill
 Same adapters pointed at archives, month by month, resumable (state in the private store), so a
 run that times out picks up where it stopped. Sanity plot of monthly counts.
-**Scope (owner, 2026-10-22): the last 12 months.** The 10-year history is parked.
+**Scope (owner): the last 12 months (2026-10-22), then one more year (2026-10-29): two years.** The
+10-year history is parked.
 **Order (owner, 2026-10-27): the history before the published data and the site.**
 - **Built 2026-10-27 (`crawler/backfill.py`).** Newest first, a week at a time for NNA (70 pages a
   week) and a month elsewhere, the daily crawl's keyword check,
@@ -337,6 +338,12 @@ run that times out picks up where it stopped. Sanity plot of monthly counts.
   counts (the sanity plot is the draft page's chart): November 2025 the most (49), then August 2026
   (35); 75% from June to November. NNA's reports run without a gap through September and October.
   Not yet reviewed by a person.
+- **Second year (started 2026-10-29):** `backfill.DAYS` 365 → 730; each source carries on from
+  where its first year stopped (only the oldest stretch, cut short before, is read again). The
+  archives reach that far: NNA's daily sitemaps and Annahar's monthly ones answer for November 2024
+  (checked 2026-10-29), Janoubia's reaches 2011, L'Orient Today's about 2018. The year holds the
+  last weeks of the 2024 war (to the 27 November ceasefire): many fires from strikes, logged but
+  not shown.
 
 ### Task 7 — Site v1
 **Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML

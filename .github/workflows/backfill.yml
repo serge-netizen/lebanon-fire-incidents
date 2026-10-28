@@ -1,5 +1,5 @@
 name: backfill
-# Task 6: the 12-month history for the sources GitHub reads (crawler/backfill.py). The crawl does a
+# Task 6: the two-year history for the sources GitHub reads (crawler/backfill.py). The crawl does a
 # little of it every run; run this by hand for a longer push. The owner's Mac does the same for
 # its sources (scripts/home-crawl.sh). Same group as the crawl: the two never write at once.
 on:
