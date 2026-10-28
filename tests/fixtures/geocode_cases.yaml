@@ -139,3 +139,40 @@
   source: NNA (2026-06-13, history)
   expect: {precision: unknown, ambiguous: true}
   why: two villages are called Kharayeb (Saida and Hermel; OCHA adds the district to the Saida one) and the text names neither district
+# Added 2026-10-28 from the 12-month history: place text as Claude read it from the article (rule 8 and new aliases)
+- text: "أطراف بلدتي كفرشوبا وحلتا - قضاء حاصبيا"
+  source: Janoubia 2026-08-05, place text
+  expect: {precision: village, pcode: "74160", conflict: true}
+  why: OCHA's only Halta is in Batroun; the text puts both villages in Hasbaya, where Kfarchouba is
+- text: "محلة العين بأحد أودية بلدة عندقت – عكار"
+  source: Annahar 2025-11-02, place text
+  expect: {precision: village, pcode: "35498", conflict: true}
+  why: al-Ain is a quarter of Andaqt, not the village Aain in Baalbek
+- text: "محلة حقل السبع في بلدة قبعيت في جرد عكار"
+  source: Annahar 2025-11-03, place text
+  expect: {precision: village, pcode: "35325", conflict: true}
+- text: "ضواحي بلدة عين بعال - قضاء صور"
+  source: NNA 2026-07-09, place text
+  expect: {precision: district, pcode: "LB63", conflict: true}
+  why: Ain Baal is not in OCHA's table; the district the text names is certain
+- text: "منطقة مرج الخوخ - قضاء مرجعيون"
+  source: NNA 2026-04-14, place text
+  expect: {precision: district, pcode: "LB43", conflict: true}
+- text: "خراج بلدة عين التينة – الضنية"
+  source: Annahar 2025-11-10, place text
+  expect: {precision: village, pcode: "37333"}
+  why: two cadastral areas are called Ain et-Tineh; Danniyeh tells them apart
+- text: "المدينة الصناعية في محلة سينيق – الغازية"
+  source: NNA 2026-01-19, place text
+  expect: {precision: village, pcode: "61311"}
+  why: an industrial zone, not Zahle's cadastral area of that name
+- text: "مستشفى دار الأمل الجامعي - دورس"
+  source: NNA 2026-08-18, place text
+  expect: {precision: village, pcode: "53119"}
+- text: "Anfeh, North Lebanon"
+  source: L'Orient Today 2025-11-24, place text
+  expect: {precision: village, pcode: "32181"}
+- text: "بلدية تنورين"
+  source: NNA 2026-08-26, place text
+  expect: {precision: district, pcode: "LB52", ambiguous: true}
+  why: OCHA has Tannourine's two halves; the press names the town

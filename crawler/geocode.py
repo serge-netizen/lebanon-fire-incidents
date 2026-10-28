@@ -16,6 +16,11 @@ Rules, in the order they bite:
 6. **A blank is an answer.** No known name → precision "unknown", never a guess.
 7. **A direction is not a place** (2026-10-27). What follows "باتجاه" or "نحو" is where a road
    leads: "نفق حامات باتجاه طرابلس" is the Hamat tunnel, not Tripoli.
+8. **The district or governorate a text names holds its places** (2026-10-28). A village named
+   outside it is left out when another named village lies inside it: in "محلة العين … بلدة عندقت
+   – عكار", "العين" is a quarter of Andaqt, not the village Aain in Baalbek. When no named village
+   lies inside and the text says "قضاء"/"محافظة", that district or governorate is the answer:
+   "بلدة عين بعال - قضاء صور" is in Tyre, whatever "عين" alone matches. Both are flagged.
 """
 
 from __future__ import annotations
@@ -308,12 +313,15 @@ def resolve(text: str) -> Resolution:
     districts: set[str] = set()
     governorates: set[str] = set()
     regions: set[str] = set()
+    explicit: set[str] = set()  # districts and governorates named with "قضاء" or "محافظة"
     used: list[str] = []
     for m in matches:
         entries = _choose(m, g, notes)
         if not entries:
             continue
         used.append(m.text)
+        if m.cue in ("district", "governorate"):
+            explicit |= {p for e in entries if e.level in (1, 2) for p in e.pcodes}
         for e in entries:
             if e.kind == "alias" and e.alias_status != "verified":
                 notes.append(f"'{m.text}' resolved through a proposed alias (not yet verified)")
@@ -330,7 +338,19 @@ def resolve(text: str) -> Resolution:
                 else:
                     villages.append(_expand(e))
 
-    ambiguous = conflict = False
+    ambiguous = conflict = left_out = False
+    # Rule 8: a village outside the district or governorate the text names is left out.
+    if villages and (districts or governorates):
+        kept = [group for group in villages if any(g.by_pcode[p].adm2_pcode in districts
+                                                   or g.by_pcode[p].adm1_pcode in governorates for p in group)]
+        if kept and len(kept) < len(villages):
+            left_out = True
+            notes.append("a place outside the district or governorate the text names was left out")
+            villages = kept
+        elif not kept and explicit:
+            left_out = True
+            notes.append("no place named lies in the district or governorate the text names: that one is kept")
+            villages = []
     # Homonyms: keep the candidates that sit in a district or governorate the text names.
     narrowed = []
     for group in villages:
@@ -373,6 +393,7 @@ def resolve(text: str) -> Resolution:
         ambiguous = len(regions) > 1
     if conflict:
         notes.append("the places named do not nest inside each other: resolved to what they share")
+    conflict = conflict or left_out  # worth a human look either way
 
     if not pool:
         return Resolution("unknown", matched=used, notes=notes or ["no known place name"])

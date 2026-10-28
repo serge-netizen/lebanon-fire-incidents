@@ -125,3 +125,12 @@ def test_a_bare_name_ocha_writes_with_its_district_is_shared():
     assert resolve("الخرايب - قضاء صيدا").pcode == "61419"
     assert resolve("بلدة يحمر الشقيف").pcode == "71394"  # its region tells it apart
     assert resolve("برمانا").pcode == "22611"  # a name only OCHA's form carried
+
+
+def test_the_district_a_text_names_holds_its_places():
+    """Rule 8: a village outside it is left out, and an explicit district beats a stray match."""
+    r = resolve("حريق في محلة العين قرب بلدة عندقت – عكار")
+    assert (r.pcode, r.conflict) == ("35498", True)
+    assert resolve("بلدة عين بعال - قضاء صور").pcode == "LB63"
+    r = resolve("حريق في بلدة دميت قرب صيدا")  # without "قضاء", Saida is a landmark: rule 5 as before
+    assert (r.precision, r.conflict) == ("unknown", True)
