@@ -1,7 +1,10 @@
 """One e-mail per new fire to the review address (owner, 2026-10-27; BRIEF amendment 10).
 
 Every fire keeps a number (state/fires.json maps each report — an article and its place in it —
-to its fire's number; a fire made of reports already numbered takes the smallest). A fire is
+to its fire's number; a fire made of reports already numbered takes the smallest). A number goes
+to one fire only: when a new article splits a numbered fire in two, the number stays with the
+part that has most of its reports (the older part on a tie) and the other part takes a new one
+(2026-10-28: both parts kept it, and the second would never have been e-mailed). A fire is
 e-mailed once, when it is in scope (war-related fires are logged, not shown, not e-mailed) and
 happened in the last week: the 12-month history goes to the reviewer as a workbook, not as
 hundreds of e-mails. The e-mail answers the nine questions as the review workbook does
@@ -20,6 +23,7 @@ import html
 import json
 import os
 import smtplib
+from collections import Counter
 from email.message import EmailMessage
 from email.utils import formataddr
 from pathlib import Path
@@ -44,14 +48,20 @@ def number(registry: dict, fires: list[Incident]) -> list[int]:
     """Each fire's number, oldest fire first for new numbers; `registry` is updated in place."""
     registry.setdefault("next", 1)
     reports = registry.setdefault("reports", {})
+    order = sorted(range(len(fires)), key=lambda n: (fires[n].date, fires[n].reports[0].url))
+    held = {n: Counter(reports[r.key] for r in fires[n].reports if r.key in reports) for n in order}
+    winner: dict[int, int] = {}  # number → the fire with most of its reports, the older on a tie
+    for n in order:
+        for k, count in held[n].items():
+            if k not in winner or count > held[winner[k]][k]:
+                winner[k] = n
     out: dict[int, int] = {}
-    for n, fire in sorted(enumerate(fires), key=lambda x: (x[1].date, x[1].reports[0].url)):
-        known = [reports[r.key] for r in fire.reports if r.key in reports]
-        if known:
-            out[n] = min(known)
-        else:
+    for k in sorted(winner):  # a fire that wins several numbers takes the smallest
+        out.setdefault(winner[k], k)
+    for n in order:
+        if n not in out:
             out[n], registry["next"] = registry["next"], registry["next"] + 1
-        for r in fire.reports:
+        for r in fires[n].reports:
             reports[r.key] = out[n]
     return [out[n] for n in range(len(fires))]
 

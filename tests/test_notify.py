@@ -37,6 +37,22 @@ def test_a_fire_keeps_its_number():
     assert numbers["raw/a.json"] == 1 and set(numbers.values()) == {1, 2} and registry["next"] == 3
 
 
+def fire(*reports: Report) -> dedupe.Incident:
+    return dedupe.Incident(list(reports), {}, "in_scope", reports[0].date, True, [])
+
+
+def test_a_number_goes_to_one_fire_only():
+    a, b, c, d = (report(x, day) for x, day in zip("abcd", (5, 6, 6, 6), strict=True))
+    registry: dict = {}
+    assert notify.number(registry, [fire(a, b, c)]) == [1]
+    # a new article splits the fire: the number stays with the part that has most of its reports
+    assert notify.number(registry, [fire(a), fire(b, c, d)]) == [2, 1]
+    assert notify.number(registry, [fire(a), fire(b, c, d)]) == [2, 1]  # and stays put
+    assert notify.number(registry, [fire(a, b, c, d)]) == [1]  # two fires become one: the smaller number
+    tie = {"next": 2, "reports": {"raw/a.json#0": 1, "raw/b.json#0": 1}}
+    assert notify.number(tie, [fire(b), fire(a)]) == [2, 1]  # a tie: the older part keeps it
+
+
 def _store(tmp_path, items_by_key: dict[str, list[dict]], published: str = "2026-10-26") -> Store:
     for key, items in items_by_key.items():
         for top in ("raw", "extracted"):
