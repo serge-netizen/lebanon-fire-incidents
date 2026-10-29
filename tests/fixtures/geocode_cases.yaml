@@ -296,3 +296,13 @@
 - text: "near Minyeh, northern Lebanon"
   source: L'Orient Today 2025-01-10, place text
   expect: {precision: village, pcode: "37271"}
+- text: "وفاة 5 أطفال اختناقًا جراء حريق في مبنى بالميناء"
+  source: NNA 2025-03-27, headline
+  expect: {precision: village, pcode: "31181"}
+  why: Mina, the Tripoli town OCHA writes المينا
+- text: "منطقة الميناء – شارع بور سعيد، شمالي لبنان"
+  source: Annahar 2025-03-27, place text
+  expect: {precision: village, pcode: "31181"}
+- text: "حريق كبير في مخزن للخردة قرب محطة الشلبي في الميناء - طرابلس"
+  source: NNA 2024-12-24, headline
+  expect: {precision: village, pcode: "31181"}

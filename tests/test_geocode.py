@@ -68,6 +68,11 @@ def test_hadath_needs_its_article():
     assert resolve("وهذا ما حدث").precision == "unknown"
 
 
+def test_mina_needs_its_article():
+    assert resolve("حريق في مبنى بالميناء").pcode == "31181"  # Mina, Tripoli
+    assert resolve("حريق في ميناء صيدا").pcode == "LB61"  # Saida's port, not Mina
+
+
 def test_district_name_beats_same_named_village():
     assert resolve("حريق في بعلبك").pcode == "LB21"
 

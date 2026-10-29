@@ -110,15 +110,17 @@ languages with RTL and light/dark tokens, four workflows. **Not done: Cloudflare
   مصبح", "زوق مكايل", "وادي فعرة", and "إقليم الخروب" → the Chouf district). Left out, on purpose:
   "بكيفا" (one in the Chouf, one in Rashaya) and "الخرايب" (OCHA's only Kharayeb are in Baalbek
   and Keserwan, the press's is near Saida). 53 real place strings; 157 aliases, 116 `proposed`.
-- **2026-10-29, second year:** of its 518 fires in scope, 115 had no district. 31 aliases
-  (`proposed`): spellings OCHA writes otherwise ("كفركلا", "شتورة", "عين بعال", "حيذوق", "دبعل" bare
-  for the one in Danniyeh…), names written as one word ("ديرعمار", "ديرميماس", "عربصاليم"), Beirut
+- **2026-10-29, second year:** of the two years' 518 fires in scope, 115 had no district. 32
+  aliases (`proposed`): spellings OCHA writes otherwise ("كفركلا", "شتورة", "عين بعال", "حيذوق",
+  "دبعل" bare for the one in Danniyeh, "الميناء" for Mina but only with its article, as "ميناء
+  صيدا" is Saida's port…), names written as one word ("ديرعمار", "ديرميماس", "عربصاليم"), Beirut
   and Tripoli quarters to their district ("بدارو", "جبل محسن"…; "الطريق الجديدة" only after
   "منطقة", as alone it is "the new road"), "العكارية" (of Akkar), "الضاحية الجنوبية لبيروت" (so
   "لبيروت" no longer pulls in Beirut), and English spellings ("Beddawi", "Rayak", "Qaa"…). OCHA
-  does list Ain Baal, as "عين بعل": the rule-8 example is now "عين الناصرة". 46 of the 115 placed;
-  the rest are highways, broad areas, places in two districts at once, or texts with no place.
-  86 real place strings; 188 aliases, 147 `proposed`.
+  does list Ain Baal, as "عين بعل": the rule-8 example is now "عين الناصرة". Result: 504 fires
+  (14 reports joined fires already counted, their places now agreeing), 71 without a district:
+  highways, broad areas, places in two districts at once, texts with no place. 89 real place
+  strings; 189 aliases, 148 `proposed`.
 
 ### Task 3 — Crawlers ✅ built 2026-10-22 (sources chosen from the census, §9)
 - **Two machines, decided with the owner 2026-10-22.** GitHub's servers read the seven sources
