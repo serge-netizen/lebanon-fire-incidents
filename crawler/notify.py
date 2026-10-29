@@ -8,7 +8,8 @@ part that has most of its reports (the older part on a tie) and the other part t
 e-mailed once, when it is in scope (war-related fires are logged, not shown, not e-mailed) and
 happened in the last week: the history goes to the reviewer as a workbook, not as
 hundreds of e-mails. The e-mail answers the nine questions as the review workbook does
-(review.fire_row), lists the articles, and asks for a reply.
+(review.fire_row), lists the articles, and asks for a reply (crawler/replies.py reads them). What
+it showed is kept (state/emailed/F-n.json), so a reply can be set against it.
 
 Sending needs three secrets the owner creates: MAIL_USERNAME and MAIL_PASSWORD (the sending
 account and its app password) and MAIL_TO (the review address). Without them nothing is sent and
@@ -25,11 +26,12 @@ import os
 import smtplib
 from collections import Counter
 from email.message import EmailMessage
-from email.utils import formataddr
+from email.utils import formataddr, make_msgid
 from pathlib import Path
 
 from crawler.dedupe import Incident, incidents, load
 from crawler.derive import IN_SCOPE
+from crawler.extract import PROMPT_VERSION
 from crawler.review import FIRE_COLUMNS, NOT_ESTABLISHED, fire_row
 from crawler.sources.common import BEIRUT
 from crawler.store import Store
@@ -93,9 +95,14 @@ def _answer(cell: str) -> str:
     return "".join(out)
 
 
+def answers(n: int, fire: Incident) -> dict:
+    """The workbook row of fire number `n`, by column title."""
+    return dict(zip(TITLES, fire_row(n, fire), strict=True))
+
+
 def render(n: int, fire: Incident) -> tuple[str, str, str]:
     """(subject, plain text, HTML) of the e-mail for fire number `n`."""
-    row = dict(zip(TITLES, fire_row(n, fire), strict=True))
+    row = answers(n, fire)
     summary = row[TITLES[3]][0].rsplit("\n[", 1)[0]
     place = row["Location"].split("\n")[0]
     site = row["Site that witnessed the fire"].split("\n")[0].split(" (also")[0]
@@ -103,8 +110,9 @@ def render(n: int, fire: Incident) -> tuple[str, str, str]:
     town = place.split(" · ")[0]
     date = fire.date.strftime("%-d %b %Y")
     subject = f"New fire F-{n}: " + (f"{site}, {town}" if site != "Fire" else town) + f" — {date}"
-    reply = ('Reply OK if all of this is right, or write what is wrong, one line per question '
-             '(e.g. "Site: restaurant", "Not a fire", "Same fire as F-12"). Nothing is published before your OK.')
+    reply = ('Reply OK if all of this is right. If not, write one line per wrong answer: the question, the right '
+             'answer, then why (e.g. "Site: warehouse because the article says depot"). You can also write "Not a '
+             'fire", or "Same fire as F-12" with the other fire\'s number. Nothing is published before your reply.')
     text = "\n".join([subject, "", summary, "", *(f"{q}: {' '.join(str(row[q]).split(chr(10)))}" for q in QUESTIONS),
                       *([f"To check: {row['Checks'].replace(chr(10), '; ')}"] if row["Checks"] else []), "",
                       "Articles:", *(f"- {r.outlet}, {r.published:%-d %b}: {r.headline}\n  {r.url}" for r in fire.reports),
@@ -144,7 +152,8 @@ def _settings() -> dict | None:
 
 def send(settings: dict, due: list[tuple[int, Incident]], sent_path: Path) -> None:
     """Each e-mail is marked sent as soon as it has gone, so a failure part-way repeats none."""
-    sent_path.parent.mkdir(parents=True, exist_ok=True)
+    shown = sent_path.parent / "emailed"
+    shown.mkdir(parents=True, exist_ok=True)
     with smtplib.SMTP_SSL(settings["MAIL_SERVER"], 465, timeout=60) as smtp, sent_path.open("a", encoding="utf-8") as fh:
         smtp.login(settings["MAIL_USERNAME"], settings["MAIL_PASSWORD"])
         for n, fire in due:
@@ -152,9 +161,16 @@ def send(settings: dict, due: list[tuple[int, Incident]], sent_path: Path) -> No
             msg = EmailMessage()
             msg["Subject"], msg["To"] = subject, settings["MAIL_TO"]
             msg["From"] = formataddr((SENDER_NAME, settings["MAIL_USERNAME"]))
+            msg["Message-ID"] = make_msgid(domain=settings["MAIL_USERNAME"].rpartition("@")[2] or None)
             msg.set_content(text)
             msg.add_alternative(f"<!doctype html><html><body>{body}</body></html>", subtype="html")
             smtp.send_message(msg)
+            row = answers(n, fire)
+            (shown / f"F-{n}.json").write_text(json.dumps({
+                "fire": n, "message_id": msg["Message-ID"], "subject": subject, "prompt_version": PROMPT_VERSION,
+                "sent_at": dt.datetime.now(BEIRUT).isoformat(timespec="minutes"), "summary": row[TITLES[3]][0],
+                "answers": {q: row[q] for q in QUESTIONS}, "checks": row["Checks"],
+                "reports": [r.key for r in fire.reports]}, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
             fh.write(f"F-{n}\n")
             fh.flush()
 

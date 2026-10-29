@@ -54,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
     ext.add_argument("--force", action="store_true", help="re-read articles already classified")
     ext.add_argument("--workers", type=int, default=4)
     sub.add_parser("notify", help="e-mail each new fire to the review address (needs the MAIL_* secrets)")
+    sub.add_parser("replies", help="keep the reviewer's replies and answer each with what was recorded (MAIL_* secrets)")
     rev = sub.add_parser("review", help="write the owner's review workbook from the classifications")
     rev.add_argument("--out", type=Path, required=True)
     back = sub.add_parser("backfill", help="the two-year history from the outlets' archives, part of it each run (task 6)")
@@ -112,6 +113,11 @@ def main(argv: list[str] | None = None) -> int:
         from crawler import notify
 
         print(json.dumps(notify.run(), indent=1))  # counts only: job logs are public
+        return 0
+    if args.command == "replies":
+        from crawler import replies
+
+        print(json.dumps(replies.run(), indent=1))  # counts only: job logs are public
         return 0
     if args.command == "review":
         from crawler import review

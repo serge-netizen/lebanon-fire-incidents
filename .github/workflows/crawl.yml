@@ -84,7 +84,16 @@ jobs:
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
         run: uv run crawler notify
-      - name: Save the classifications and fire numbers to the private store
+      # The reviewer's replies (crawler/replies.py): each kept in the private store and answered with
+      # what was recorded. Nothing is read until the MAIL_* secrets exist.
+      - name: Read the reviewer's replies
+        if: ${{ env.HAS_PRIVATE == 'true' }}
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: uv run crawler replies
+      - name: Save the classifications, fire numbers and replies to the private store
         if: ${{ !cancelled() && env.HAS_PRIVATE == 'true' }}  # saved even when an e-mail failed
         working-directory: private
         run: |
