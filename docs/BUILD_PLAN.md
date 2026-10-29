@@ -356,9 +356,20 @@ run that times out picks up where it stopped. Sanity plot of monthly counts.
 - **Second year (started 2026-10-29):** `backfill.DAYS` 365 → 730; each source carries on from
   where its first year stopped (only the oldest stretch, cut short before, is read again). The
   archives reach that far: NNA's daily sitemaps and Annahar's monthly ones answer for November 2024
-  (checked 2026-10-29), Janoubia's reaches 2011, L'Orient Today's about 2018. The year holds the
-  last weeks of the 2024 war (to the 27 November ceasefire): many fires from strikes, logged but
-  not shown.
+  (checked 2026-10-29), Janoubia's reaches 2011, L'Orient Today's about 2018.
+- **Second year complete (2026-10-29, night):** one long run each, started by hand: the Mac read
+  NNA's 52 weeks, Janoubia and L'Orient Today in 95 minutes; GitHub read Annahar's 13 months in 17.
+  The Mac's push of the result (one commit, 1,640 files) was refused with HTTP 400; sent again with
+  a larger `http.postBuffer`, now set in the runner's clone of the store. 1,111 fire stories
+  classified for **$1.90**. From 1 Nov 2024 to 29 Oct 2026: **504 fires in scope** (299 in the
+  first year, 205 in the second) and 114 war-related, logged, not shown. The 2024 war's last weeks
+  gave only 6 of them: strikes are rarely reported as fires. August 2025 the most (65). February to
+  May 2026 have 3 to 6 a month against 15 to 21 a year before: not a gap in reading (as many NNA
+  articles both years), fewer fire stories. 45 deaths shown, in 23 fires; two fatal fires are
+  still split in two or three (Mina, December 2024; Fakra, August 2025: their reports name
+  different sites), so 39 in 20. The Civil Defense series has 233 days; one bulletin (5 May 2025,
+  the day after the municipal elections' first round) says 619 missions, kept as published. Not
+  yet reviewed by a person.
 
 ### Task 7 — Site v1
 **Drafted first as a private page (owner, 2026-10-27):** an artifact or one self-contained HTML
