@@ -153,8 +153,8 @@
   expect: {precision: village, pcode: "35325", conflict: true}
 - text: "ضواحي بلدة عين بعال - قضاء صور"
   source: NNA 2026-07-09, place text
-  expect: {precision: district, pcode: "LB63", conflict: true}
-  why: Ain Baal is not in OCHA's table; the district the text names is certain
+  expect: {precision: village, pcode: "62243"}
+  why: OCHA writes Ain Baal عين بعل (alias, 2026-10-29); it lies in the district the text names
 - text: "منطقة مرج الخوخ - قضاء مرجعيون"
   source: NNA 2026-04-14, place text
   expect: {precision: district, pcode: "LB43", conflict: true}
@@ -189,3 +189,110 @@
 - text: "وادي فعرة"
   source: NNA 2026-06-27, place text
   expect: {precision: village, pcode: "54151"}
+# Second year of the history (2026-10-29): place texts from fires that had no district.
+- text: "بلدة كفركلا الحدودية جنوب لبنان"
+  source: Annahar 2025-08-16, place text
+  expect: {precision: village, pcode: "73228"}
+- text: "خراج بلدة كفركلا - منطقة المطار غرب تلة الحمامص"
+  source: NNA 2025-10-11, place text
+  expect: {precision: village, pcode: "73228"}
+- text: "نطاق ديرعمار"
+  source: NNA 2025-05-28, place text
+  expect: {precision: village, pcode: "37241"}
+- text: "أحراج ديرميماس"
+  source: NNA 2025-08-14, place text
+  expect: {precision: village, pcode: "73167"}
+- text: "شتورة البقاعية"
+  source: Annahar 2025-07-14, place text
+  expect: {precision: village, pcode: "51211"}
+- text: "بلدة عين بعال - صور"
+  source: NNA 2025-04-25, place text
+  expect: {precision: village, pcode: "62243"}
+- text: "حي اللبانة في بلدة عربصاليم - النبطية"
+  source: NNA 2025-07-28, place text
+  expect: {precision: village, pcode: "71256"}
+- text: "خراج بلدة حيذوق - محافظة عكار"
+  source: Annahar 2026-07-27, place text
+  expect: {precision: village, pcode: "35139"}
+- text: "خراج بلدة ذوق الحصنية"
+  source: Annahar 2025-08-15, place text
+  expect: {precision: village, pcode: "35151"}
+- text: "فنيدق - القموعة"
+  source: NNA 2025-08-12, place text
+  expect: {precision: village, pcode: "35353"}
+  why: OCHA names this area Fnaydeq in English and النبي خالد in Arabic
+- text: "دوحة عرمون"
+  source: NNA 2025-09-17, place text
+  expect: {precision: village, pcode: "24211"}
+  why: Doha Aramoun is the coastal part of Aramoun, Aley, not the Aramoun in Keserwan
+- text: "احراج بلدتي دبعل وبيت جاويك - الضنية"
+  source: NNA 2025-11-06, place text
+  expect: {precision: village, pcode: "37356"}
+  why: Danniyeh tells this Dbaal from the one in Tyre
+- text: "بلدة عيون السمك - الضنية"
+  source: NNA 2025-09-07, place text
+  expect: {precision: district, pcode: "LB55"}
+  why: Ayoun al-Samak is not a cadastral area; "عيون" alone must not become Aayoun in Akkar
+- text: "غابة القلة - أعالي جرود بلدة مشمش العكارية"
+  source: Annahar 2025-07-24, place text
+  expect: {precision: village, pcode: "35351"}
+  why: the word العكارية (of Akkar) tells this Mashmesh from the one in Jbeil
+- text: "بلدة شدرا – العكارية"
+  source: Janoubia 2025-11-09, place text
+  expect: {precision: district, pcode: "LB51"}
+- text: "طريق بلدة المقيبلة - منطقة وادي خالد الحدودية"
+  source: Annahar 2025-01-02, place text
+  expect: {precision: district, pcode: "LB51"}
+- text: "بلدة حوش السيد علي الحدودية"
+  source: Janoubia 2025-03-19, place text
+  expect: {precision: district, pcode: "LB22"}
+- text: "الضاحية الجنوبية للعاصمة بيروت"
+  source: Janoubia 2025-08-01, place text
+  expect: {precision: district, pcode: "LB32"}
+  why: the suburbs of Beirut, not Beirut
+- text: "منطقة برج البراجنة - الضاحية الجنوبية لبيروت"
+  source: Annahar 2025-02-20, place text
+  expect: {precision: village, pcode: "21177"}
+- text: "منطقة الحدث في الضاحية الجنوبية لبيروت"
+  source: Annahar 2025-05-31, place text
+  expect: {precision: village, pcode: "21219"}
+- text: "موقف للسيارات في شارع الحمرا"
+  source: NNA 2024-11-09, place text
+  expect: {precision: village, pcode: "10150"}
+  why: Hamra Street is in Ras Beirut
+- text: "منطقة أرض جلول – الطريق الجديدة"
+  source: NNA 2025-07-27, place text
+  expect: {precision: district, pcode: "LB11"}
+- text: "المحكمة الشرعية السنية - منطقة الطريق الجديدة"
+  source: NNA 2025-05-17, place text
+  expect: {precision: district, pcode: "LB11"}
+- text: "بدارو"
+  source: NNA 2025-12-11, place text
+  expect: {precision: district, pcode: "LB11"}
+- text: "الرملة البيضاء"
+  source: NNA 2026-08-27, place text
+  expect: {precision: district, pcode: "LB11"}
+- text: "جبل محسن"
+  source: NNA 2025-10-15, place text
+  expect: {precision: district, pcode: "LB56"}
+- text: "Beddawi area of northern Lebanon"
+  source: L'Orient Today 2025-06-07, place text
+  expect: {precision: village, pcode: "37231"}
+- text: "Bourjain"
+  source: L'Orient Today 2026-09-13, place text
+  expect: {precision: village, pcode: "23247"}
+- text: "Sabtieh"
+  source: L'Orient Today 2025-04-15, place text
+  expect: {precision: district, pcode: "LB36"}
+- text: "al-Sindibad camp in Taalabaya, Bekaa"
+  source: L'Orient Today 2025-06-07, place text
+  expect: {precision: village, pcode: "51221"}
+- text: "wheat field near Rayak Hospital in the Bekaa"
+  source: L'Orient Today 2025-06-07 (2), place text
+  expect: {precision: village, pcode: "51311"}
+- text: "near Qaa in the Bekaa Valley"
+  source: L'Orient Today 2025-02-26, place text
+  expect: {precision: village, pcode: "53241"}
+- text: "near Minyeh, northern Lebanon"
+  source: L'Orient Today 2025-01-10, place text
+  expect: {precision: village, pcode: "37271"}

@@ -20,7 +20,7 @@ Rules, in the order they bite:
    outside it is left out when another named village lies inside it: in "محلة العين … بلدة عندقت
    – عكار", "العين" is a quarter of Andaqt, not the village Aain in Baalbek. When no named village
    lies inside and the text says "قضاء"/"محافظة", that district or governorate is the answer:
-   "بلدة عين بعال - قضاء صور" is in Tyre, whatever "عين" alone matches. Both are flagged.
+   "بلدة عين الناصرة - قضاء صيدا" is in Saida, whatever "عين" alone matches. Both are flagged.
 """
 
 from __future__ import annotations

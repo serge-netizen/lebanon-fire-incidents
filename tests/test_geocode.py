@@ -132,6 +132,6 @@ def test_the_district_a_text_names_holds_its_places():
     """Rule 8: a village outside it is left out, and an explicit district beats a stray match."""
     r = resolve("حريق في محلة العين قرب بلدة عندقت – عكار")
     assert (r.pcode, r.conflict) == ("35498", True)
-    assert resolve("بلدة عين بعال - قضاء صور").pcode == "LB63"
+    assert resolve("بلدة عين الناصرة - قضاء صيدا").pcode == "LB61"  # Ain al-Nasra is not in OCHA's table
     r = resolve("حريق في بلدة دميت قرب صيدا")  # without "قضاء", Saida is a landmark: rule 5 as before
     assert (r.precision, r.conflict) == ("unknown", True)
